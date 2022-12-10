@@ -1,5 +1,14 @@
 # Todo
-get some serious quantum shit done
+## Projekt
+1. Simulator bauen
+2. Vergleich von verschiedenen Visualisierungen/Darstellungsformen für Zustände/Q-Bits
+    * Blochkugel
+    * Circle Notation
+    * Braket
+    * [SpinDrops](https://spindrops.org/)?
+
+## Bacherlorarbeit
+Spielideen für Game-of-TUK?
 
 # Stundenplan
 ![Stundenplan](stundenplan.png)
