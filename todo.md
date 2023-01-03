@@ -1,3 +1,39 @@
+# Todo 
+- mehr Tests mit Beispielen aus Büchern?
+    - Deutsch und bla algorithmen als funktionen
+    - Quantum Bomb Detection
+- Phase/Magnitude Logic implementieren
+    - Problem Bsp Klausur Risk Managment Pirat
+- Visualisierung 
+    - Circle Notation implementieren -> Matplotlib
+    - Draw Methode für Notation (QISKIT Methode ist openSource)
+- Notate anschauen und verwendbar machen
+    - MNist (ggf. noch trainieren)
+    - Natural Language Model für Physik nutzbar?
+- evtl. nicht effizienten Compiler für 1-2 qubits bauen
+- PyGame anschauen
+    - community Games 
+        - avalon
+        - debelion -> werwolf und ähnl. spiele
+    - Bubble Shooter
+    
+
+# Vortrag Projekt
+**Termin**: 1 oder 2 Woche Apirl 2023<br>
+**Aufpeppen mit coolen Beispielen**
+- Tale of Princess and Tiger
+- Spiele 
+- Info Klassiker, Inc/Dec
+
+# Bachelor 
+- Toolbox für Ba wäre soweit fertig
+- Komplexe systeme auf was einfaches Reduzieren und damit spaß haben
+- Educational andersrum: Bau was das wirklich spaß macht und schau ob Leute damit was lernen
+
+
+<br>
+**Minecraft-Mod** Spiel -> Mitte Ende nächstes Jahr Master/Promotion nichts für mich
+
 # Ziel:
 Sehr einfacher Simulator vergleichbar mit der [QCEngine UI](https://oreilly-qc.github.io)
 - Modular damit verschiedene Visualisierungen angebaut werden können. UI erbt von Backend
@@ -8,7 +44,12 @@ Sehr einfacher Simulator vergleichbar mit der [QCEngine UI](https://oreilly-qc.g
     - Wie machen andere Simulatoren das? (siehe Vergleich/Liste unten)
     - Variablen durch m qbits repräsentieren (wie in QCEngine) noch nicht drin. Brauchen wir das?
 - **Aufpassen mit Indexing** -i für korrekte Reihenfolge in Q-Register
-
+- Spielideen? 
+    - [Game Based Learning – Computerspiele
+in der Hochschullehre](https://www.e-teaching.org/didaktik/konzeption/methoden/lernspiele/game_based_learning/gamebasedlearning.pdf)
+    - [Learning by Design: Good Video Games as Learning Machines](https://doi.org/10.2304/elea.2005.2.1.5)
+    - Escape Game
+    - Game of TUK
 
 ## Methoden Todo:
 - Zustände erzeugen 
@@ -38,6 +79,9 @@ Sehr einfacher Simulator vergleichbar mit der [QCEngine UI](https://oreilly-qc.g
 - [Docs](https://qiskit.org/documentation/)
 - [Github Repo](https://github.com/Qiskit/qiskit)
     - Simulator: [**Qiskit Aer**](https://github.com/Qiskit/qiskit-aer)
+
+## [IBM Quantum Composer](https://quantum-computing.ibm.com/composer) 
+- [Doks](https://quantum-computing.ibm.com/composer/docs/iqx/visualizations)
 
 ## OpenQASM
 - [Knowledge Base](https://www.quantum-inspire.com/kbase/cqasm/)
