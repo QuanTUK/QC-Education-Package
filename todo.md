@@ -1,4 +1,23 @@
-# Todo 
+# Todo
+## Akut
+- messen in anderer Basis (POVM Messung, isnb. XYZ Basis für Bell Messung) -> mit I, H oder X Basistrafo
+- Darstellung für Didaktik
+    - Paper von Eva mit Darstellung von <= 3 Qubits
+    - GUI mit Lars vom DFKI -> 08.03
+        - Python3.6.8, matplotlib 3.3.4, numpy 1.1.95
+    - __str__ von Simulator überschreiben, wiederherstellen aus String ermöglichen. serialize to bla.__dict__ in json format
+    - Deadline 25.03 für Submit von Paper
+
+    - Beispiele von QC-Engine übernehmen
+    - Namen der Zustände in Binärdarstellung bzw. mehrere Zustände zu Variablen zusammenfassen
+    - Gatter sollen listen akzeptieren zB. not([1,3,7])
+
+- Max ist bis Ende März erstmal busy
+- Branch mit weniger pythonic kram für Education Paper
+- Overleaf für Vorlesung lesen und überarbeiten
+
+## Pipeline
+- Plotly Dashboard für Django Webseite
 - mehr Tests mit Beispielen aus Büchern?
     - Deutsch und bla algorithmen als funktionen
     - Quantum Bomb Detection
