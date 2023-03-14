@@ -1,5 +1,7 @@
 # Todo
 ## Akut
+- european journal physics -> einreichen ende märz 31.03 auf arxiv -> 28.29.30 verfübar sein für bugfixes
+- QuanTUK Runde am 27.03 Webseite
 - messen in anderer Basis (POVM Messung, isnb. XYZ Basis für Bell Messung) -> mit I, H oder X Basistrafo
 - Darstellung für Didaktik
     - Paper von Eva mit Darstellung von <= 3 Qubits
@@ -12,9 +14,11 @@
     - Namen der Zustände in Binärdarstellung bzw. mehrere Zustände zu Variablen zusammenfassen
     - Gatter sollen listen akzeptieren zB. not([1,3,7])
 
+
 - Max ist bis Ende März erstmal busy
 - Branch mit weniger pythonic kram für Education Paper
 - Overleaf für Vorlesung lesen und überarbeiten
+
 
 ## Pipeline
 - Plotly Dashboard für Django Webseite

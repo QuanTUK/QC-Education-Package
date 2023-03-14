@@ -19,7 +19,7 @@ class simulator():
         self._I = np.identity(2)  # Identity in C2
         self._H = 1 / np.sqrt(2) * np.array([[1,1],[1,-1]])  # Hadamard gate
         self._X = np.array([[0,1],[1,0]]) # Not or Pauli X gate
-        self._X = np.array([[0,1],[1,0]]) # Pauli Y gate
+        self._Y = np.array([[0,-1j],[1j,0]]) # Pauli Y gate
         self._Z = np.array([[1,0],[0,-1]]) # Phase 180 or Pauli Z gate
         self._ROOTX = np.array([[1+1j,1-1j],[1-1j,1+1j]])/2 # Phase 180 or Z gate
         self._ROOTZ = np.array([[1,0],[0,1j]]) # Phase 180 or Z gate
@@ -49,6 +49,7 @@ class simulator():
         amp = np.abs(self._register).flatten().tolist()
         phase = np.angle(self._register).flatten().tolist()
         return json.dumps({'n': self._n, 'amp': amp, 'phase': phase})
+
 
     def reset(self, n=None):
         """Reset simulator to a system of n Q-bits with all Q-bits in state |0> (zero state).
