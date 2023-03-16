@@ -123,7 +123,7 @@ class DimensionalCircleNotation(Visualization):
     def __init__(self, simulator, azim=25, elev=25, roll= 0):
         self._sim = simulator
         self._colors = {'edge': 'black', 'edge_bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#5a5a5a'}
-        self._widths = {'edge': 1, 'phase': 1, 'cube': 1}
+        self._widths = {'edge': 1, 'phase': 1, 'cube': 1, 'textsize': .4, 'textwidth': .1}
         self._circleDist = 5
 
         # Tait–Bryan angles -> https://en.wikipedia.org/wiki/Euler_angles#Tait%E2%80%93Bryan_angles
@@ -188,7 +188,7 @@ class DimensionalCircleNotation(Visualization):
             pathpatch_translate(dial, (x,y,z))
 
             off = -1.7 if int(label[1]) else 1.3
-            tp = PathPatch(TextPath((0,0), f'|{label:s}>', size=0.3), color="black")
+            tp = PathPatch(TextPath((0,0), fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False), color="black", linewidth=self._widths['textwidth'])
             ax.add_patch(tp)
             pathpatch_2d_to_3d(tp, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
             pathpatch_translate(tp, (x-.6, y+off,z))

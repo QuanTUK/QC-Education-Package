@@ -2,6 +2,8 @@
 ## Akut
 - european journal physics -> einreichen ende märz 31.03 auf arxiv -> 28.29.30 verfübar sein für bugfixes
 - text annotationen in tex, Achsen in DCN einzeichnen.
+- DCN Version für Webseite fertig machen.
+    - settings für bild über kwargs
 - **Versionen**:
     - Webseite: Python 3.6.8 , matplotlib 3.3.4, numpy 1.1.95
     - Lokal:    Python 3.10.6, matplotlib 3.7.0, numpy 1.24.2
