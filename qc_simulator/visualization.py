@@ -83,7 +83,7 @@ class CircleNotation(Visualization):
         xpos = self._circleDist/2
         ypos = y_max - self._circleDist/2
 
-        self._fig = plt.figure(layout='compressed')  # layout='compressed'
+        self._fig = plt.figure(layout='compressed', dpi=300)  # layout='compressed'
         ax = self._fig.gca()
        
         val = np.abs(self._sim._register)
@@ -137,7 +137,7 @@ class DimensionalCircleNotation(Visualization):
         phase = np.angle(self._sim._register, deg=False).flatten()
         lx, ly = -np.sin(phase), np.cos(phase)
 
-        fig = plt.figure(layout='compressed')  # layout='compressed'
+        fig = plt.figure(layout='compressed', dpi=300)  # layout='compressed'
         ax = fig.add_subplot(projection='3d', proj_type = 'ortho', computed_zorder=False)
 
         ax.set_xlim([-self._circleDist, self._circleDist])

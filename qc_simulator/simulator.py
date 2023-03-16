@@ -140,7 +140,7 @@ class simulator():
         self._Q_bits = None     # Register not defined by Q_bits
         a = np.array(a)
         norm = np.linalg.norm(a)
-        if norm - 1 > 1e-6:
+        if abs(norm - 1) > 1e-6:
             print("The given amplitudes lead to a not normed state.\nNormalizing...")
             a = a / norm
         self._register = np.zeros(len(a), dtype=complex)
