@@ -25,37 +25,40 @@ class Visualization:
 
 
     def export_base64(self):
-        if self._fig == None:
-            self.draw()
-        buf = BytesIO()
-        self._fig.savefig(buf, format="png", bbox_inches='tight', pad_inches=0)
-        return base64.b64encode(buf.getbuffer()).decode("ascii")
+        return base64.b64encode(self._export_buffer()).decode("ascii")
         
 
-    def export_png(self):
-        if self._fig == None:
-            self.draw()
-        pass # fig.savefig('test.png')
+    def export_png(self, fname:str):
+        self._export(fname)
 
 
-    def _export(self):
-        if self._fig == None:
+    def _export_buffer(self):
+        buf = BytesIO()
+        self._export(buf)
+        return buf.getbuffer()
+
+
+    def _export(self, target):
+        if self._fig is None:
             self.draw()
-        pass
+        matplotlib.use('TkAgg')
+        # TODO: Bugfix
+        self._fig.savefig(target, format="png", bbox_inches='tight', pad_inches=0, dpi=300, transparent=True)
 
 
     def show(self):
         """Show fig
         """ 
-        # NOTE: Known Bug, does not work with backend_interagg (pycharm??) 
-        matplotlib.use('TkAgg')
+        # NOTE: Assert Gui backend
         if self._fig == None:
             self.draw()
+        matplotlib.use('TkAgg')
         plt.show()
 
 
     def draw(self):
         pass
+
 
 
 class CircleNotation(Visualization):
@@ -123,7 +126,7 @@ class DimensionalCircleNotation(Visualization):
     def __init__(self, simulator, azim=25, elev=25, roll= 0):
         self._sim = simulator
         self._colors = {'edge': 'black', 'edge_bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#5a5a5a'}
-        self._widths = {'edge': 1, 'phase': 1, 'cube': 1, 'textsize': .4, 'textwidth': .1}
+        self._widths = {'edge': .5, 'phase': .5, 'cube': .5, 'textsize': .4, 'textwidth': .1}
         self._circleDist = 5
 
         # Tait–Bryan angles -> https://en.wikipedia.org/wiki/Euler_angles#Tait%E2%80%93Bryan_angles
@@ -139,8 +142,8 @@ class DimensionalCircleNotation(Visualization):
         phase = np.angle(self._sim._register, deg=False).flatten()
         lx, ly = -np.sin(phase), np.cos(phase)
 
-        fig = plt.figure(layout='compressed', dpi=300)  # layout='compressed'
-        ax = fig.add_subplot(projection='3d', proj_type = 'ortho', computed_zorder=False)
+        self._fig = plt.figure(layout='compressed', dpi=300)  # layout='compressed'
+        ax = self._fig.add_subplot(projection='3d', proj_type = 'ortho', computed_zorder=False)
 
         ax.set_xlim([-self._circleDist, self._circleDist])
         ax.set_ylim([-self._circleDist, self._circleDist])
@@ -182,7 +185,7 @@ class DimensionalCircleNotation(Visualization):
             pathpatch_2d_to_3d(ring, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
             pathpatch_translate(ring, (x,y,z))
 
-            dial = mpatches.FancyArrowPatch((0, 0), (lx[i], ly[i]), zorder=100)  
+            dial = mpatches.FancyArrowPatch((0, 0), (lx[i], ly[i]), linewidth=self._widths['phase'] ,zorder=100)  
             ax.add_patch(dial)
             pathpatch_2d_to_3d(dial, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
             pathpatch_translate(dial, (x,y,z))

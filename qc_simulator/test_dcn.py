@@ -10,4 +10,6 @@ sim.cNot(1, 2)
 sim.had(1)
 
 vis = DimensionalCircleNotation(sim)
-vis.show()
+# vis.show()
+
+vis.export_png('test.png')
