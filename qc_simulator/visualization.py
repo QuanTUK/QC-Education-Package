@@ -186,7 +186,7 @@ class DimensionalCircleNotation(Visualization):
             pathpatch_translate(dial, (x,y,z))
 
             off = -1.7 if int(label[1]) else 1.3
-            tp = PathPatch(TextPath((0,0), f'|{label:s}>', size=0.4), color="black")
+            tp = PathPatch(TextPath((0,0), f'|{label:s}>', size=0.3), color="black")
             ax.add_patch(tp)
             pathpatch_2d_to_3d(tp, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
             pathpatch_translate(tp, (x-.6, y+off,z))
