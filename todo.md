@@ -2,20 +2,11 @@
 ## Akut
 - european journal physics -> einreichen ende märz 31.03 auf arxiv -> 28.29.30 verfübar sein für bugfixes
 - QuanTUK Runde am 27.03 Webseite
-- messen in anderer Basis (POVM Messung, isnb. XYZ Basis für Bell Messung) -> mit I, H oder X Basistrafo
-- Darstellung für Didaktik
-    - Paper von Eva mit Darstellung von <= 3 Qubits
-    - GUI mit Lars vom DFKI -> 08.03
-        - Python3.6.8, matplotlib 3.3.4, numpy 1.1.95
-    - __str__ von Simulator überschreiben, wiederherstellen aus String ermöglichen. serialize to bla.__dict__ in json format
-    - Deadline 25.03 für Submit von Paper
+- Python3.6.8, matplotlib 3.3.4, numpy 1.1.95
 
-    - Beispiele von QC-Engine übernehmen
-    - Namen der Zustände in Binärdarstellung bzw. mehrere Zustände zu Variablen zusammenfassen
-    - Gatter sollen listen akzeptieren zB. not([1,3,7])
+- Beispiele von QC-Engine übernehmen
+- Namen der Zustände in Binärdarstellung bzw. mehrere Zustände zu Variablen zusammenfassen
 
-
-- Max ist bis Ende März erstmal busy
 - Branch mit weniger pythonic kram für Education Paper
 - Overleaf für Vorlesung lesen und überarbeiten
 
@@ -54,8 +45,9 @@
 - Educational andersrum: Bau was das wirklich spaß macht und schau ob Leute damit was lernen
 
 
-<br>
-**Minecraft-Mod** Spiel -> Mitte Ende nächstes Jahr Master/Promotion nichts für mich
+
+**Minecraft-Mod**
+ Spiel -> Mitte Ende nächstes Jahr Master/Promotion nichts für mich
 
 # Ziel:
 Sehr einfacher Simulator vergleichbar mit der [QCEngine UI](https://oreilly-qc.github.io)

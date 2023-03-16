@@ -23,7 +23,11 @@ class simulator():
         self._Z = np.array([[1,0],[0,-1]]) # Phase 180 or Pauli Z gate
         self._ROOTX = np.array([[1+1j,1-1j],[1-1j,1+1j]])/2 # Phase 180 or Z gate
         self._ROOTZ = np.array([[1,0],[0,1j]]) # Phase 180 or Z gate
-        self._P = lambda phi : np.array([[1,0],[0,np.exp(1j * phi)]]) # General phase gate
+        
+        self._P  = lambda phi : np.array([[1,0],[0,np.exp(1j * phi)]], dtype=complex) # General phase gate
+        self._Rx = lambda phi : np.array([[np.cos(phi/2), -1j*np.sin(phi/2)],[-1j*np.sin(phi/2), np.cos(phi/2)]], dtype=complex) # Rotation about x-axis (Bloch Sphere)
+        self._Ry = lambda phi : np.array([[np.cos(phi/2), -1*np.sin(phi/2)],[np.sin(phi/2), np.cos(phi/2),]], dtype=complex) # Rotation about y-axis (Bloch Sphere)
+        self._Rz = lambda phi : np.array([[np.exp(-1j*phi/2), 0],[0, np.exp(-1j*phi/2)]], dtype=complex) # Rotation about z-axis (Bloch Sphere)
 
         if jsonDump is not None:
             state = json.loads(jsonDump)
@@ -64,16 +68,7 @@ class simulator():
         self._Q_bits = [self._zero] * self._n  # for showing start state in quantum circuit
         self._register = self._nKron(self._Q_bits)
 
-
-    # Mind! Indexing registers/comp. basis 1 to n
-    # TODO More Methodes to Prepare Qbits for examples 
-    def prepare(self):
-        """
-        
-        """
-        pass
-
-    
+   
     def write_integer(self, val:int, Q_bit=1):  
         """Write given integer value in binary starting a position Q-bit. If no Q-bit parameter is passed, start
         with first Q-bit. Attention! This will override the register. Use this only to prepare your Q-bits/register.
@@ -153,7 +148,7 @@ class simulator():
         Attention! This will override the register. Use this only to prepare your Q-bits/register.
 
         Args:
-            amp (list of float): Real amplitude for each component
+            amp (list of float): Real amplitude for each component # NOTE: amp or abs?
             phase (list of int): Integer angle in deg for each component
         """
         assert(len(amp) == 2**self._n)
@@ -197,13 +192,12 @@ class simulator():
                 self._operatorInBase(proj)
             prop = np.square(np.abs(self._register)).flatten()
             result = np.random.choice(a=2**self._n, p=prop)  # choice uses np.arange 0 to a, hence +1
+            self.write_integer(result)
             out = format(result, '0b')
             # Add leading zeros
             if len(out)< self._n:
                 out = '0' * (self._n-len(out)) + out
-            print(f"Measured state |{out}>.") # NOTE qc engine returns 
-            return result - 1
-        
+            msg = f"Measured state |{out}>."
         else:
             # Measuring one Q-bit
             # Measuring using projector to subspace
@@ -226,14 +220,15 @@ class simulator():
             p1 = np.linalg.norm(state1)
             # Check if state was normed
             assert(1 - p0 - p1 < 1e-6)
-            print(f"Measurement Q-bit {Q_bit:2d}:\t|0>: {p0**2:2.2%}\t|1>: {p1**2:2.2%}\n")
             # Project to new state
             result = np.random.choice(a=[0,1], p=[p0**2, p1**2])
             state = state1 if result else state0  # True/False is alias for 1/0 in Python 
             norm = p1 if result else p0
             # Normalize state
             self._register = state / norm
-            return int(result)
+            msg =  f"Measurement Q-bit {Q_bit:2d}: |{result:d}> \t (|0>: {p0**2:2.2%} |1>: {p1**2:2.2%})."
+        print(msg)
+        return msg
 
 
     # Methods to generate single Q-bit operators
@@ -301,6 +296,48 @@ class simulator():
             np.array: Matrix for PHASE gate on given Q-bit in comp. basis.
         """
         return self._operatorInBase(self._P(np.deg2rad(angle)), Q_bit)
+
+
+    def rx(self, angle:int, Q_bit=None):
+        """Applies the Rx gate with given angle (in deg)  to Q-bit i.
+        If no Q-bit is given (Q_bit=None) Rx(angle) gate will be applied to all Q-bits.
+
+        Args:
+            angle(int): Angle in deg
+            Q_bit (int, optional): Q-bit to apply Rx to. Defaults to None.
+
+        Returns:
+            np.array: Matrix for Rx gate on given Q-bit in comp. basis.
+        """
+        return self._operatorInBase(self._Rx(np.deg2rad(angle)), Q_bit)
+
+
+    def ry(self, angle:int, Q_bit=None):
+        """Applies the Ry gate with given angle (in deg)  to Q-bit i.
+        If no Q-bit is given (Q_bit=None) Ry(angle) gate will be applied to all Q-bits.
+
+        Args:
+            angle(int): Angle in deg
+            Q_bit (int, optional): Q-bit to apply Ry to. Defaults to None.
+
+        Returns:
+            np.array: Matrix for Ry gate on given Q-bit in comp. basis.
+        """
+        return self._operatorInBase(self._Ry(np.deg2rad(angle)), Q_bit)
+
+
+    def rz(self, angle:int, Q_bit=None):
+        """Applies the Ry gate with given angle (in deg)  to Q-bit i.
+        If no Q-bit is given (Q_bit=None) Rz(angle) gate will be applied to all Q-bits.
+
+        Args:
+            angle(int): Angle in deg
+            Q_bit (int, optional): Q-bit to apply Rz to. Defaults to None.
+
+        Returns:
+            np.array: Matrix for Rz gate on given Q-bit in comp. basis.
+        """
+        return self._operatorInBase(self._Rz(np.deg2rad(angle)), Q_bit)
 
 
     # Aliases for ease of use and compatibility with QCEngine method names
@@ -382,9 +419,38 @@ class simulator():
             np.array: Matrix for ROOT-Z gate on given Q-bit in comp. basis.
         """
         return self._operatorInBase(self._ROOTZ, Q_bit)
+    
+    
+    def swap(self, i:int, j:int) -> np.array:
+        """Performs SWAP operation with given Q-bits i and j.
+
+        Args:
+            i (int): Q-bit to be swapped.
+            j (int): Q-bit to be swapped.
+
+        Returns:
+            np.array: Matrix representation for used SWAP gate in comp. basis.
+        """
+        # SWAP by using CNOT gates 
+        cn1 = self.cNot(i, j)
+        cn2 = self.cNot(j, i)
+        return cn1 @ cn2 @ cn1
 
 
     # Methods to generate multi Q-bit operators
+    def cHad(self, control_Q_bit:int, not_Q_bit:int) -> np.array:
+        """Applies the controlled Hadamard gate with given control and target Q-bit.
+
+        Args:
+            control_Q_bit (int or list): Q-bit(s) which is controlling.
+            not_Q_bit (int): Q-bit on which Hadamard gate shall be applied.
+
+        Returns:
+            np.array: controlled Hadamard gate for given parameters in comp. basis.
+        """
+        return self._controlledU(self._H, control_Q_bit, not_Q_bit)
+
+
     def cNot(self, control_Q_bit:int, not_Q_bit:int) -> np.array:
         """Applies the CNOT gate with given control and target Q-bit.
 
@@ -406,25 +472,67 @@ class simulator():
             not_Q_bit (int): Q-bit on which Not gate shall be applied.
 
         Returns:
-            np.array: c_not gate for given parameters in comp. basis.
+            np.array: cc_not gate for given parameters in comp. basis.
         """
         return self._controlledU(self._X, [control_Q_bit1, control_Q_bit2], not_Q_bit)
 
 
-    def cPhase(self, control_Q_bit:int, not_Q_bit:int, angle:int) -> np.array:
+    def cPhase(self, control_Q_bit:int, target_Q_bit:int, angle:int) -> np.array:
         """Applies the CPHASE gate with given angle, given control and target Q-bit.
 
         Args:
             control_reg (int): Q-bit which is controlling.
-            not_Q_bit (int): Q-bit on which Phase gate shall be applied.
-            angle (int): Angle in rad for rotation.
+            target_Q_bit (int): Q-bit on which Phase gate shall be applied.
+            angle (int): Angle in deg for rotation.
 
         Returns:
             np.array: CPHASE gate for given parameters in comp. basis.
         """
-        return self._controlledU(self._P(np.deg2rad(angle)), control_Q_bit, not_Q_bit)
+        return self._controlledU(self._P(np.deg2rad(angle)), control_Q_bit, target_Q_bit)
 
+
+    def cRx(self, control_Q_bit:int, target_Q_bit:int, angle:int) -> np.array:
+        """Applies the controlled Rx gate with given angle, given control and target Q-bit.
+
+        Args:
+            control_reg (int): Q-bit which is controlling.
+            target_Q_bit (int): Q-bit on which Rx gate shall be applied.
+            angle (int): Angle in deg for rotation.
+
+        Returns:
+            np.array: controlled Rx gate for given parameters in comp. basis.
+        """
+        return self._controlledU(self._Rx(np.deg2rad(angle)), control_Q_bit, target_Q_bit)
+
+
+    def cRy(self, control_Q_bit:int, target_Q_bit:int, angle:int) -> np.array:
+        """Applies the controlled Rx gate with given angle, given control and target Q-bit.
+
+        Args:
+            control_reg (int): Q-bit which is controlling.
+            target_Q_bit (int): Q-bit on which Ry gate shall be applied.
+            angle (int): Angle in deg for rotation.
+
+        Returns:
+            np.array: controlled Ry gate for given parameters in comp. basis.
+        """
+        return self._controlledU(self._Ry(np.deg2rad(angle)), control_Q_bit, target_Q_bit)
+
+
+    def cRz(self, control_Q_bit:int, target_Q_bit:int, angle:int) -> np.array:
+        """Applies the controlled Rz gate with given angle, given control and target Q-bit.
+
+        Args:
+            control_reg (int): Q-bit which is controlling.
+            target_Q_bit (int): Q-bit on which Rz gate shall be applied.
+            angle (int): Angle in deg for rotation.
+
+        Returns:
+            np.array: controlled Rz gate for given parameters in comp. basis.
+        """
+        return self._controlledU(self._Rz(np.deg2rad(angle)), control_Q_bit, target_Q_bit)
     
+
     def cZ(self, control_Q_bit:int, not_Q_bit:int) -> np.array:
         """Applies the CZ gate with given control and target Q-bit.
 
@@ -438,23 +546,6 @@ class simulator():
         return self._controlledU(self._Z, control_Q_bit, not_Q_bit)
 
 
-    def swap(self, i:int, j:int) -> np.array:
-        """Performs SWAP operation with given Q-bits i and j.
-
-        Args:
-            i (int): Q-bit to be swapped.
-            j (int): Q-bit to be swapped.
-
-        Returns:
-            np.array: Matrix representation for used SWAP gate in comp. basis.
-        """
-        # SWAP by using CNOT gates 
-        cn1 = self.cNot(i, j)
-        cn2 = self.cNot(j, i)
-        cn3 = self.cNot(i, j)
-        return cn3 @ cn2 @ cn1
-
-
     def cSwap(self, control_Q_bit:int, i:int, j:int) -> np.array:
         """Performs CSWAP operation with given Q-bits i and j controlled by given control Q-bit
 
@@ -466,11 +557,14 @@ class simulator():
         Returns:
             np.array: Matrix representation for used CSWAP gate in comp. basis.
         """
-        # CSWAP by using CCNOT gates
-        ccn1 = self.cNot([control_Q_bit, i], j)
-        ccn2 = self.cNot([control_Q_bit, j], i)
-        ccn3 = self.cNot([control_Q_bit, i], j)
-        return ccn3 @ ccn2 @ ccn1
+        # CSWAP by using CCNOT gates TODO: 1 sparen
+        c1 = [i]
+        c1.extend(control_Q_bit)
+        c2 = [j]
+        c2.extend(control_Q_bit)
+        ccn1 = self.cNot(c1, j)
+        ccn2 = self.cNot(c2, i)
+        return ccn1 @ ccn2 @ ccn1
     
     
     # Private/hidden methods
@@ -513,15 +607,19 @@ class simulator():
             np.array: Operator U applied to Q-bit in comp. basis.
         """
         if Q_bit is None:
-            some_list = [operator] * self._n
+            some_list = [operator] * self._n  
         else:
-            assert(Q_bit > 0)
-            assert(Q_bit <= self._n)
-            some_list = [np.identity(2)] * self._n
-            some_list[-Q_bit] = operator # -Q-bit s.t. order of registers is correct  
+            if type(Q_bit) == list:
+                assert(len(Q_bit) > 0)
+            Q_bit = np.array(Q_bit, dtype=int)
+            assert(np.all(Q_bit > 0))
+            assert(np.all(Q_bit <= self._n))
+            some_list = np.array([np.identity(2)] * self._n, dtype=complex)
+            some_list[-Q_bit] = operator # -Q-bit s.t. order of registers is correct 
         op =self._nKron(some_list)
         self._register = op @ self._register
         return op
+
 
 
     def _controlledU(self, operator:np.array, control_Q_bit:int, target_Q_bit:int) -> np.array:
@@ -535,14 +633,13 @@ class simulator():
         Returns:
             np.array: Matrix for controlled operator in comp. basis.
         """
-        if type(control_Q_bit)==list:
-            assert(target_Q_bit not in control_Q_bit)
-        elif type(control_Q_bit)==int:
-            assert(target_Q_bit != control_Q_bit)
-        control0 = [np.identity(2)] * self._n
-        # Indexing with list should work? TODO check
+        control_Q_bit = np.array(control_Q_bit, dtype=int)
+        assert(np.all(target_Q_bit != control_Q_bit))
+        
+        control0 = np.array([np.identity(2)] * self._n, dtype=complex)
         control0[-control_Q_bit] = np.array([[1,0],[0,0]]) # |0><0| check if |0>, apply I if so 
-        control1 = [np.identity(2)] * self._n
+
+        control1 = np.array([np.identity(2)] * self._n, dtype=complex)
         control1[-control_Q_bit] = np.array([[0,0],[0,1]]) # |1><1| check if |1>
         control1[-target_Q_bit] = operator # apply U if so
         op = self._nKron(control0) + self._nKron(control1)
