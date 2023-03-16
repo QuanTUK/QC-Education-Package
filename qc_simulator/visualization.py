@@ -1,5 +1,6 @@
 from simulator import simulator
 from pyplot3d_helper import pathpatch_2d_to_3d, pathpatch_translate
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
@@ -46,7 +47,8 @@ class Visualization:
     def show(self):
         """Show fig
         """ 
-        # NOTE: Assert Gui backend
+        # NOTE: Known Bug, does not work with backend_interagg (pycharm??) 
+        matplotlib.use('TkAgg')
         if self._fig == None:
             self.draw()
         plt.show()

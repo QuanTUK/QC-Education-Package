@@ -1,14 +1,17 @@
 # Todo
 ## Akut
 - european journal physics -> einreichen ende märz 31.03 auf arxiv -> 28.29.30 verfübar sein für bugfixes
-- QuanTUK Runde am 27.03 Webseite
-- Python3.6.8, matplotlib 3.3.4, numpy 1.1.95
+- text annotationen in tex, Achsen in DCN einzeichnen.
+- **Versionen**:
+    - Webseite: Python 3.6.8 , matplotlib 3.3.4, numpy 1.1.95
+    - Lokal:    Python 3.10.6, matplotlib 3.7.0, numpy 1.24.2
 
-- Beispiele von QC-Engine übernehmen
-- Namen der Zustände in Binärdarstellung bzw. mehrere Zustände zu Variablen zusammenfassen
 
-- Branch mit weniger pythonic kram für Education Paper
-- Overleaf für Vorlesung lesen und überarbeiten
+- Später:
+    - Beispiele von QC-Engine übernehmen
+    - Namen der Zustände in Binärdarstellung bzw. mehrere Zustände zu Variablen zusammenfassen
+    - Branch mit weniger pythonic kram für Education Paper
+    - Overleaf für Vorlesung lesen und überarbeiten
 
 
 ## Pipeline
