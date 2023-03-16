@@ -41,8 +41,8 @@ class Visualization:
     def _export(self, target):
         if self._fig is None:
             self.draw()
-        matplotlib.use('TkAgg')
-        # TODO: Bugfix
+        # TODO: Pyplot Bug: https://github.com/matplotlib/matplotlib/issues/21688
+        # Bugreport schreiben
         self._fig.savefig(target, format="png", bbox_inches='tight', pad_inches=0, dpi=300, transparent=True)
 
 
@@ -73,8 +73,8 @@ class CircleNotation(Visualization):
             cols (_type_, optional): _description_. Defaults to None.
         """
         self._sim = simulator
-        self._colors = {'edge': 'black', 'fill': '#77b6ba', 'phase': 'black'}
-        self._widths = {'edge': 1, 'phase': 1}
+        self._colors = {'edge': 'black', 'edge_bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#5a5a5a'}
+        self._widths = {'edge': .5, 'phase': .5, 'cube': .5, 'textsize': 5, 'textwidth': .1}
         self._circleDist = 3
 
         self._fig = None
@@ -108,7 +108,8 @@ class CircleNotation(Visualization):
             ax.add_artist(ring)
             ax.add_artist(phase)
             label = np.binary_repr(i, width=self._sim._n) # width is deprecated since numpy 1.12.0
-            ax.text(xpos, ypos - 1.35, f'|{label:s}>', horizontalalignment='center', verticalalignment='center')
+            # fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False), color="black", linewidth=self._widths['textwidth'])
+            ax.text(xpos, ypos - 1.35, fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')
             # NOTE text vs TextPath: text can easily be centered, textpath size is fixed when zooming
             # tp = TextPath((xpos-0.2*len(label), ypos - 1.35), f'|{label:s}>', size=0.4)
             # ax.add_patch(PathPatch(tp, color="black"))
@@ -195,3 +196,4 @@ class DimensionalCircleNotation(Visualization):
             ax.add_patch(tp)
             pathpatch_2d_to_3d(tp, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
             pathpatch_translate(tp, (x-.6, y+off,z))
+        
