@@ -1,6 +1,4 @@
 from simulator import simulator
-from pyplot3d_helper import pathpatch_2d_to_3d, pathpatch_translate
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
@@ -24,41 +22,42 @@ class Visualization:
         self._widths = None
 
 
-    def export_base64(self):
-        return base64.b64encode(self._export_buffer()).decode("ascii")
+    def export_base64(self, formatStr='png'):
+        return base64.b64encode(self._export_buffer(formatStr)).decode("ascii")
         
 
     def export_png(self, fname:str):
         self._export(fname)
 
+    def export_pdf(self, fname:str):
+        self._export(fname, 'svg')
+    
+    def export_svg(self, fname:str):
+        self._export(fname, 'pdf')
 
-    def _export_buffer(self):
+
+    def _export_buffer(self, formatStr):
         buf = BytesIO()
-        self._export(buf)
+        self._export(buf, formatStr)
         return buf.getbuffer()
 
 
-    def _export(self, target):
-        if self._fig is None:
-            self.draw()
-        # TODO: Pyplot Bug: https://github.com/matplotlib/matplotlib/issues/21688
-        # Bugreport schreiben
-        self._fig.savefig(target, format="png", bbox_inches='tight', pad_inches=0, dpi=300, transparent=True)
+    def _export(self, target, formatStr='png') :
+        self.draw()  # always redraw
+        self._fig.savefig(target, format=formatStr, bbox_inches='tight', pad_inches=0, dpi=300, transparent=True)
 
 
     def show(self):
         """Show fig
         """ 
         # NOTE: Assert Gui backend
-        if self._fig == None:
-            self.draw()
-        matplotlib.use('TkAgg')
+        # TODO: More than one show possible
+        self.draw()  # always redraw
         plt.show()
 
 
     def draw(self):
         pass
-
 
 
 class CircleNotation(Visualization):
@@ -73,8 +72,8 @@ class CircleNotation(Visualization):
             cols (_type_, optional): _description_. Defaults to None.
         """
         self._sim = simulator
-        self._colors = {'edge': 'black', 'edge_bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#5a5a5a'}
-        self._widths = {'edge': .5, 'phase': .5, 'cube': .5, 'textsize': 5, 'textwidth': .1}
+        self._colors = {'edge': 'black', 'fill': '#77b6ba', 'phase': 'black'}
+        self._widths = {'edge': 1, 'phase': 1}
         self._circleDist = 3
 
         self._fig = None
@@ -88,11 +87,11 @@ class CircleNotation(Visualization):
         xpos = self._circleDist/2
         ypos = y_max - self._circleDist/2
 
-        self._fig = plt.figure(layout='compressed', dpi=300)  # layout='compressed'
+        self._fig = plt.figure(layout='compressed', dpi=300)
         ax = self._fig.gca()
        
         val = np.abs(self._sim._register)
-        phi = np.angle(self._sim._register, deg=False).flatten()
+        phi = -np.angle(self._sim._register, deg=False).flatten()
         lx, ly = np.sin(phi), np.cos(phi)
 
         ax.set_xlim([0, x_max])
@@ -108,8 +107,7 @@ class CircleNotation(Visualization):
             ax.add_artist(ring)
             ax.add_artist(phase)
             label = np.binary_repr(i, width=self._sim._n) # width is deprecated since numpy 1.12.0
-            # fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False), color="black", linewidth=self._widths['textwidth'])
-            ax.text(xpos, ypos - 1.35, fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')
+            ax.text(xpos, ypos - 1.35, f'|{label:s}>', horizontalalignment='center', verticalalignment='center')
             # NOTE text vs TextPath: text can easily be centered, textpath size is fixed when zooming
             # tp = TextPath((xpos-0.2*len(label), ypos - 1.35), f'|{label:s}>', size=0.4)
             # ax.add_patch(PathPatch(tp, color="black"))
@@ -120,80 +118,140 @@ class CircleNotation(Visualization):
                 ypos -= self._circleDist
 
 
+# TODO: Textgröße fest -> TextPatch
 class DimensionalCircleNotation(Visualization):
-    """Dimensional Circle Notation
+    """Circle Notation
     """
 
-    def __init__(self, simulator, azim=25, elev=25, roll= 0):
+    def __init__(self, simulator: simulator):
+        """_summary_
+
+        Args:
+            simulator (qc_simulator.simulator): _description_
+        """
         self._sim = simulator
-        self._colors = {'edge': 'black', 'edge_bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#5a5a5a'}
-        self._widths = {'edge': .5, 'phase': .5, 'cube': .5, 'textsize': .4, 'textwidth': .1}
-        self._circleDist = 5
 
-        # Tait–Bryan angles -> https://en.wikipedia.org/wiki/Euler_angles#Tait%E2%80%93Bryan_angles
-        # yaw, pitch, roll
-        self._azim = azim
-        self._elev = elev
-        self._roll = roll
+        # Style of circles
+        self._colors = {'edge': 'black', 'bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#5a5a5a'}
+        self._widths = {'edge': .5, 'phase': .5, 'cube': .5, 'textsize': 10, 'textwidth': .1}
+        self._arrowStyle = {'width':.03, 'head_width':.3, 'head_length':.5, 'edgecolor':None, 'facecolor':'black'}
 
+        # Placement
+        self._c = 5  # circle distance
+        self._o = self._c / 2  # offset for 3rd dim qubits
+
+        self._coords = np.array([   [0, 1],                 # |000>
+                                    [1, 1],                 # |001>
+                                    [0, 0],                 # |010>
+                                    [1, 0],                 # |011>
+                                    [0, 0],                 # |100>
+                                    [0, 0],                 # |101>
+                                    [0, 0],                 # |110>
+                                    [0, 0]], dtype=float)   # |111>
+        # Set distance
+        self._coords *= self._c   
+        # offset 3rd dim qubits 
+        self._coords[4:] = self._coords[:4] + self._o
+        # center around origin
+        # self._coords -= self._c/2
+        
         self._fig = None
-
+        self._ax = None
+        self._val, self._phi = None, None
+        self._lx, self._ly = None, None
+         
+        
     def draw(self):
-        val = np.abs(self._sim._register).flatten()
-        phase = np.angle(self._sim._register, deg=False).flatten()
-        lx, ly = -np.sin(phase), np.cos(phase)
+        """_summary_
+        """
+        self._fig = plt.figure(layout='compressed', dpi=300)
+        self._ax = self._fig.gca()
+        self._ax.set_axis_off()
+        self._ax.set_aspect('equal')
 
-        self._fig = plt.figure(layout='compressed', dpi=300)  # layout='compressed'
-        ax = self._fig.add_subplot(projection='3d', proj_type = 'ortho', computed_zorder=False)
+        self._val = np.abs(self._sim._register)
+        self._phi = -np.angle(self._sim._register, deg=False).flatten()
+        self._lx, self._ly = np.sin(self._phi), np.cos(self._phi)
 
-        ax.set_xlim([-self._circleDist, self._circleDist])
-        ax.set_ylim([-self._circleDist, self._circleDist])
-        ax.set_zlim([-self._circleDist, self._circleDist])
+        bits = 2**self._sim._n
+        if bits > 4:
+            self._drawLine([0,4,5])
+            self._drawLine([1,5,7,3])
+            self._drawDottedLine([2,6,7])
+            self._drawDottedLine([4,6])
+            self._drawCircle(7)
+            self._drawCircle(6)
+            self._drawCircle(5)
+            self._drawCircle(4)
+        if bits > 2:
+            self._drawLine([0,2,3,1])
+            self._drawCircle(3)
+            self._drawCircle(2)
+        self._drawLine([0,1])
+        self._drawCircle(1)
+        self._drawCircle(0)
 
-        ax.set_axis_off()
-        ax.set_aspect('equal')
-        
-        # Adjust camera view for DCN representation
-        ax.view_init(azim=self._azim, elev=self._elev, roll=self._roll, vertical_axis='y')
+        # Basisvectors
+        # NOTE: Array/Liste für Positionen -> kwargs
+        if self._sim._n == 1:
+            self._drawArrows(-1, self._c + 2)  
+            self._ax.set_xlim([-1.2, 6.2])
+            self._ax.set_ylim([3.5, 7.5])
+        elif self._sim._n == 2:
+            self._drawArrows(-2.5, self._c + 2.5)  
+            self._ax.set_xlim([-4, 6.2])
+            self._ax.set_ylim([-2,8])
+        elif self._sim._n == 3:
+            self._ax.set_xlim([-5, 8.7])
+            self._ax.set_ylim([-2, 10.35])
+            self._drawArrows(-self._c+self._o*2/3, self._c + 2.5)  
 
-        # Draw cube wireframe connecting circles
-        c = self._circleDist/2
-        ax.plot([c, -c, -c, c, c],[c, c, -c, -c, c],[c,c,c,c,c], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='solid', zorder=1)
-        ax.plot([c, -c, -c, c, c],[c, c, c, c, c],[c,c,-c,-c,c], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='-', zorder=1)
-        ax.plot([c, c, c, c, c],[c, -c, -c, c, c],[c,c,-c,-c,c], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='-', zorder=1)
-        ax.plot([c, c, c, c, c],[c, -c, -c, c, c],[c,c,-c,-c,c], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='-', zorder=1)
-        ax.plot([-c, -c, c],[-c, -c, -c],[c, -c, -c], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='dotted', zorder=1)
-        ax.plot([-c, -c],[c, -c],[-c, -c], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='dotted', zorder=1)
 
-        for i in range(2**self._sim._n):
-            label = np.binary_repr(i, width=self._sim._n) # width is deprecated since numpy 1.12.0
-            # Get coordinates on cube from binary repr
-            x,y,z = -self._circleDist * (1-int(label[2]))+c, self._circleDist * (1-int(label[1]))-c, self._circleDist * (1-int(label[0]))-c
+    def _drawArrows(self, x0, y0):
+        alen = self._c*2/3 # NOTE: -> kwargs
+        if self._sim._n > 2:
+            di = alen / np.sqrt(2)
+            self._ax.text(x0+di/2-.15, y0+di/2+.15, 'Qubit #3', size=self._widths['textsize'], usetex=False, horizontalalignment='right', verticalalignment='center')
+            self._ax.arrow(x0, y0, di, di, **self._arrowStyle)
+        if self._sim._n > 1:
+            self._ax.text(x0-.3, y0-alen/2, 'Qubit #2', size=self._widths['textsize'], usetex=False, horizontalalignment='right', verticalalignment='center')
+            self._ax.arrow(x0, y0, 0, -alen, **self._arrowStyle)
+        self._ax.text(x0+alen/2, y0+.3, 'Qubit #1', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')    
+        self._ax.arrow(x0, y0, alen, 0, **self._arrowStyle)
 
-            bg = mpatches.Circle((0, 0), radius=1, fill=True, facecolor=self._colors['edge_bg'], zorder=5)  
-            ax.add_patch(bg)
-            # for vertical axis = z, order/role of angle changes, when vertical axis changes
-            pathpatch_2d_to_3d(bg, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
-            pathpatch_translate(bg, (x,y,z))
 
-            fill = mpatches.Circle((0, 0), radius=val[i], color=self._colors['fill'], edgecolor=None, zorder=10)
-            ax.add_patch(fill)
-            pathpatch_2d_to_3d(fill, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
-            pathpatch_translate(fill, (x,y,z))
+    def _drawDottedLine(self, points:list):
+        self._ax.plot(self._coords[points,0], self._coords[points,1], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='dotted', zorder=1)
 
-            ring = mpatches.Circle((0, 0), radius=1, fill=False, edgecolor=self._colors['edge'], linewidth=self._widths['edge'], zorder=10) 
-            ax.add_patch(ring)
-            pathpatch_2d_to_3d(ring, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
-            pathpatch_translate(ring, (x,y,z))
 
-            dial = mpatches.FancyArrowPatch((0, 0), (lx[i], ly[i]), linewidth=self._widths['phase'] ,zorder=100)  
-            ax.add_patch(dial)
-            pathpatch_2d_to_3d(dial, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
-            pathpatch_translate(dial, (x,y,z))
+    def _drawLine(self, points:list):
+        self._ax.plot(self._coords[points,0], self._coords[points,1], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='solid', zorder=1)
+            
 
-            off = -1.7 if int(label[1]) else 1.3
-            tp = PathPatch(TextPath((0,0), fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False), color="black", linewidth=self._widths['textwidth'])
-            ax.add_patch(tp)
-            pathpatch_2d_to_3d(tp, azim=self._roll, elev=self._azim, roll=-self._elev, z = 0)
-            pathpatch_translate(tp, (x-.6, y+off,z))
-        
+    def _drawCircle(self, index:int):
+        xpos, ypos = self._coords[index]
+        # White bg circle area of unit circle
+        bg = mpatches.Circle((xpos, ypos), radius=1, color=self._colors['bg'], edgecolor=None)
+        self._ax.add_artist(bg)
+        # Fill area of unit circle
+        if self._val[index] > 0:
+            fill = mpatches.Circle((xpos, ypos), radius=self._val[index], color=self._colors['fill'], edgecolor=None)
+            self._ax.add_artist(fill)
+        # Black margin for circles
+        ring = mpatches.Circle((xpos, ypos), radius=1, fill=False, edgecolor=self._colors['edge'], linewidth=self._widths['edge'])
+        self._ax.add_artist(ring)
+        # Indicator for phase
+        if self._val[index] > 0:
+            phase = mlines.Line2D([xpos, xpos+self._lx[index]], [ypos, ypos+self._ly[index]], color=self._colors['phase'], linewidth=self._widths['phase'])
+            self._ax.add_artist(phase)
+        # Add label to circle
+        label = np.binary_repr(index, width=self._sim._n) # width is deprecated since numpy 1.12.0
+        # print(index, label)
+        if self._sim._n == 3:
+            off = -1.3 if int(label[1]) else 1.3
+        elif self._sim._n == 2:
+            off = -1.3 if int(label[0]) else 1.3
+        else: 
+            off = -1.3
+        self._ax.text(xpos, ypos + off, fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')
+            
