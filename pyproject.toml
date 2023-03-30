@@ -8,6 +8,7 @@ dependencies = [
 version = "0.0.1"
 authors = [
   { name="Nikolas Longen", email="nlongen@rptu.de" },
+  { name="Maximilian Kiefer-Emmanouilidis", email="maximilian.kiefer@rptu.de" }
 ]
 description = "Quantuk QC-Education-Package"
 readme = "README.md"
@@ -18,12 +19,11 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.urls]
-"Homepage" =  "https://rptu.de/quantuk"
+"Homepage" =  "https://www.physik.uni-kl.de/widera/forschung/quantuk"
 "Repository" = "https://github.com/QuanTUK/QC-Education-Package"
 "Bug Tracker" = "https://github.com/QuanTUK/QC-Education-Package/issues"

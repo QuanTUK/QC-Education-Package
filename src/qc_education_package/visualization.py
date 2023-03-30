@@ -1,3 +1,9 @@
+#----------------------------------------------------------------------------
+    # Created By: Nikolas Longen, nlongen@rptu.de
+    # Reviewed By: Maximilian Kiefer-Emmanouilidis, maximilian.kiefer@rptu.de
+    # Created: March 2023
+    # Project: DCN QuanTUK
+#----------------------------------------------------------------------------
 from .simulator import Simulator
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
