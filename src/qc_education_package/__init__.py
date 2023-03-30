@@ -1,2 +1,2 @@
 from simulator import simulator
-from visualization import CircleNotation, DimensionalCircleNotation
+from visualization import Visualization, CircleNotation, DimensionalCircleNotation
