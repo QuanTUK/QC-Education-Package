@@ -26,3 +26,7 @@ classifiers = [
 "Homepage" =  "https://rptu.de/quantuk"
 "Repository" = "https://github.com/QuanTUK/QC-Education-Package"
 "Bug Tracker" = "https://github.com/QuanTUK/QC-Education-Package/issues"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["qc_edu"]
