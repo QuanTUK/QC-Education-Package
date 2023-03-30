@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "Quantuk-QC-Education-Package"
+name = "qc_education_package"
 keywords = ["quantum computing", "circle notation", "education"]
 dependencies = [
   "matplotlib >= 3.7.0",
