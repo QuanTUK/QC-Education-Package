@@ -13,46 +13,88 @@ import numpy as np
 # TODO: (Animating DCN with camera view)
 
 class Visualization:
-    """Superclass for all visualizations
+    """Superclass for all visualizations of quantum computer states. 
+    This way all visualizations inherit export methods. 
+    Alle subclasses must implement/overwrite a draw method and should also overwrite the __init__ method.
     """
     def __init__(self, simulator: simulator):
+        """Constructor for Visualization superclass.
+
+        Args:
+            simulator (qc_simulator.simulator): Simulator object to be visualized.
+        """
         self._sim = simulator
         self._fig = None
         self._colors = None
         self._widths = None
+      
+
+    def export_png(self, fname:str):
+        """Export the current visualization as PNG image to given path.
+
+        Args:
+            fname (str): fname or path to export image to.
+        """
+        self._export(fname, 'png')
+
+    def export_pdf(self, fname:str):
+        """Export the current visualization as PDF file to given path.
+
+        Args:
+            fname (str): fname or path to export file to.
+        """
+        self._export(fname, 'pdf')
+    
+
+    def export_svg(self, fname:str):
+        """Export the current visualization as SVG image to given path.
+
+        Args:
+            fname (str): fname or path to export image to.
+        """
+        self._export(fname, 'svg')
 
 
     def export_base64(self, formatStr='png'):
+        """Export given format as base64 string. Mostly to handover images for flask website.
+
+        Args:
+            formatStr (str, optional): Format for image. Defaults to 'png'.
+
+        Returns:
+            str: base64 string representation of the generated image.
+        """
         return base64.b64encode(self._export_buffer(formatStr)).decode("ascii")
-        
-
-    def export_png(self, fname:str):
-        self._export(fname)
-
-    def export_pdf(self, fname:str):
-        self._export(fname, 'svg')
-    
-    def export_svg(self, fname:str):
-        self._export(fname, 'pdf')
-
 
     def _export_buffer(self, formatStr):
+        """Export current visualization in format into IO buffer. 
+
+        Args:
+            formatStr (str, optional): Format for image. Defaults to 'png'.
+
+        Returns:
+            BytesIO: returns view of buffer containing image using BytesIO.getbuffer()
+        """
         buf = BytesIO()
         self._export(buf, formatStr)
         return buf.getbuffer()
 
 
-    def _export(self, target, formatStr='png') :
-        self.draw()  # always redraw
+    def _export(self, target, formatStr='png'):
+        """General export method to save current pyplot figure, so all all exports will share same form factor, res etc.  
+
+        Args:
+            target (plt.savefig compatible object): Target to save pyplot figure to.
+            formatStr (str, optional): Format for image. Defaults to 'png'.
+        """
+        self.draw()
         self._fig.savefig(target, format=formatStr, bbox_inches='tight', pad_inches=0, dpi=300, transparent=True)
 
 
     def show(self):
-        """Show fig
+        """Method to show current figure using plt.show but making sure the visualization is always redrawn.
         """ 
-        # NOTE: Assert Gui backend
-        # TODO: More than one show possible
-        self.draw()  # always redraw
+        self.draw()
         plt.show()
 
 
@@ -61,15 +103,15 @@ class Visualization:
 
 
 class CircleNotation(Visualization):
-    """Circle Notation
+    """A Visualization subclass for the well known Circle Notation representation.
     """
 
-    def __init__(self, simulator: simulator, cols=None):
-        """_summary_
+    def __init__(self, simulator, cols=None):
+        """Constructor for the Circle Notation representation.
 
         Args:
-            simulator (qc_simulator.simulator): _description_
-            cols (_type_, optional): _description_. Defaults to None.
+            simulator (qc_simulator.simulator): Simulator object to be visualized.
+            cols (int, optional): Arrange Circle Notation into a set of columns. Defaults to None.
         """
         self._sim = simulator
         self._colors = {'edge': 'black', 'fill': '#77b6ba', 'phase': 'black'}
@@ -81,6 +123,8 @@ class CircleNotation(Visualization):
         
         
     def draw(self):
+        """Draw Circle Notation representation of current simulator state.
+        """
         bits = 2**self._sim._n
         x_max = self._circleDist * self._cols
         y_max = self._circleDist * bits/self._cols
@@ -120,15 +164,17 @@ class CircleNotation(Visualization):
 
 # TODO: Textgröße fest -> TextPatch
 class DimensionalCircleNotation(Visualization):
-    """Circle Notation
+    """A Visualization subclass for the newly introduced Dimensional Circle Notation (DCN) representation.
     """
 
-    def __init__(self, simulator: simulator):
-        """_summary_
+    def __init__(self, simulator):
+        """Constructor for the Dimensional Circle Notation representation.
+        This representation can be used for up to 3 qubits.
 
         Args:
-            simulator (qc_simulator.simulator): _description_
+            simulator (qc_simulator.simulator): Simulator object to be visualized.
         """
+        assert(self._sim._n <= 3)  # DCN is made for up to 3 qubits
         self._sim = simulator
 
         # Style of circles
@@ -162,7 +208,7 @@ class DimensionalCircleNotation(Visualization):
          
         
     def draw(self):
-        """_summary_
+        """Draw Dimensional Circle Notation representation of current simulator state.
         """
         self._fig = plt.figure(layout='compressed', dpi=300)
         self._ax = self._fig.gca()
@@ -191,8 +237,7 @@ class DimensionalCircleNotation(Visualization):
         self._drawCircle(1)
         self._drawCircle(0)
 
-        # Basisvectors
-        # NOTE: Array/Liste für Positionen -> kwargs
+        # coordinate axis
         if self._sim._n == 1:
             self._drawArrows(-1, self._c + 2)  
             self._ax.set_xlim([-1.2, 6.2])
@@ -208,7 +253,13 @@ class DimensionalCircleNotation(Visualization):
 
 
     def _drawArrows(self, x0, y0):
-        alen = self._c*2/3 # NOTE: -> kwargs
+        """Helper method to draw arrows for coordinate axis at given position.
+
+        Args:
+            x0 (float): Origin x direction
+            y0 (float): Origin y direction
+        """
+        alen = self._c*2/3 
         if self._sim._n > 2:
             di = alen / np.sqrt(2)
             self._ax.text(x0+di/2-.15, y0+di/2+.15, 'Qubit #3', size=self._widths['textsize'], usetex=False, horizontalalignment='right', verticalalignment='center')
@@ -220,15 +271,33 @@ class DimensionalCircleNotation(Visualization):
         self._ax.arrow(x0, y0, alen, 0, **self._arrowStyle)
 
 
-    def _drawDottedLine(self, points:list):
+    def _drawDottedLine(self, points):
+        """Helper method.
+        Draw dotted lines connecting the given points in the xy-plane.
+
+        Args:
+            points (nested list([float, float]): List of xy-coordinates
+        """
         self._ax.plot(self._coords[points,0], self._coords[points,1], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='dotted', zorder=1)
 
 
-    def _drawLine(self, points:list):
+    def _drawLine(self, points):
+        """Helper method.
+        Draw lines connecting the given points in the xy-plane.
+
+        Args:
+            points (nested list([float, float]): List of xy-coordinates
+        """
         self._ax.plot(self._coords[points,0], self._coords[points,1], color=self._colors['cube'], linewidth=self._widths['cube'], linestyle='solid', zorder=1)
             
 
-    def _drawCircle(self, index:int):
+    def _drawCircle(self, index):
+        """Helper method. 
+        Draw single circle for DCN. 
+
+        Args:
+            index (int): Index of the circle to be drawn.
+        """
         xpos, ypos = self._coords[index]
         # White bg circle area of unit circle
         bg = mpatches.Circle((xpos, ypos), radius=1, color=self._colors['bg'], edgecolor=None)
