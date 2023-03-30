@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "Quantuk-QC-Education-Package"
+keywords = ["quantum computing", "circle notation", "education"]
+dependencies = [
+  "matplotlib >= 3.7.0",
+  "numpy >= 1.24.2",
+]
+version = "0.0.1"
+authors = [
+  { name="Nikolas Longen", email="nlongen@rptu.de" },
+]
+description = "Quantuk QC-Education-Package"
+readme = "README.md"
+requires-python = ">=3.10.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" =  "https://rptu.de/quantuk"
+"Repository" = "https://github.com/QuanTUK/QC-Education-Package"
+"Bug Tracker" = "https://github.com/QuanTUK/QC-Education-Package/issues"
