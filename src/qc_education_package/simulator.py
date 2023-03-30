@@ -3,7 +3,7 @@ from numpy.random  import rand
 import json
 
 
-class simulator():
+class Simulator():
 
 
     def __init__(self, n=1, jsonDump=None):

@@ -1,4 +1,4 @@
-from .simulator import simulator
+from .simulator import Simulator
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
@@ -209,7 +209,7 @@ class DimensionalCircleNotation(Visualization):
     def draw(self):
         """Draw Dimensional Circle Notation representation of current simulator state.
         """
-        self._fig = plt.figure(layout='compressed', dpi=300)
+        self._fig = plt.figure(layout='compressed')
         self._ax = self._fig.gca()
         self._ax.set_axis_off()
         self._ax.set_aspect('equal')
