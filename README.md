@@ -1,3 +1,3 @@
-# QuanTUK Education Package
+# QuanTUK Quantum Computing Education Package
 
-This is a test build for experimenting with github and google collab
+This is a test build for testing setups with github and google collab notebooks
