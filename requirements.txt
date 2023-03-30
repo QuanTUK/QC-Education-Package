@@ -1,3 +1,0 @@
-# Python:  3.10.6 (main, Nov 14 2022, 16:10:14) [GCC 11.3.0]
-numpy==1.24.2
-matplotlib==3.7.0
