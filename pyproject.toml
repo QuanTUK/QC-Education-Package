@@ -7,7 +7,7 @@ name = "Quantuk-QC-Education-Package"
 keywords = ["quantum computing", "circle notation", "education"]
 dependencies = [
   "matplotlib >= 3.7.0",
-  "numpy >= 1.24.2",
+  "numpy >= 1.22.4",
 ]
 version = "0.0.1"
 authors = [
@@ -15,7 +15,7 @@ authors = [
 ]
 description = "Quantuk QC-Education-Package"
 readme = "README.md"
-requires-python = ">=3.10.6"
+requires-python = ">=3.9.16"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
