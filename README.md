@@ -4,7 +4,8 @@ This is a python package to get a first glimpse into the general principles of q
 This toolset may be  used by educators or lectureres to prepare materials for theier classes, and as well interessted students to get first hand-on expierience.
 
 ## Installation
-You can install this toolset using pip
+For using this package You need Python version 3.9.16 or higher. We recommend installing the latest [python release](https://www.python.org/downloads/).
+Having Python installed You can install this toolset using pip
 ```bash
 pip3 install git+https://github.com/QuanTUK/QC-Education-Package.git  
 ```

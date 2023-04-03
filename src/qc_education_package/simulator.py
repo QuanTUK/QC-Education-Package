@@ -54,6 +54,7 @@ class Simulator():
         self._basis = np.identity(2**self._n)
         
 
+    # Overrides
     def __str__(self):
         """Overrides objects toString to export simulator in json format.
 
@@ -65,6 +66,21 @@ class Simulator():
         return json.dumps({'n': self._n, 'amp': amp, 'phase': phase})
 
 
+    def __eq__(self, o):
+        """Overrides objects equals method to compare simulator states
+
+        Args:
+            o (Simulator): Object (Simulator) to compare with this Simulator object
+
+        Returns:
+            bool: True if given registers of simulators equal, else False
+        """
+        if isinstance(o, Simulator):
+            return np.array_equal(self._register, o._register)
+        return False 
+
+
+    # Preparing state
     def reset(self, n=None):
         """Reset simulator to a system of n qubit with all qubit in state |0> (zero state).
         If n is not specified, resets all current qubits to |0>.
@@ -353,15 +369,15 @@ class Simulator():
 
     def flip(self, qubit=None) -> np.array:
         """Applies the Pauli-Z (PHASE(180)) gate to given qubit(s). Alias for qc_simulator.z(qubit) and .phase(180, qubit).
-        If no qubit is given (qubit=None) PHASE(90) gate will be applied to all qubits.
+        If no qubit is given (qubit=None) PHASE(180) gate will be applied to all qubits.
 
         Args:
-            qubit (int or list(int), optional): qubit to apply PHASE(90) to. Defaults to None.
+            qubit (int or list(int), optional): qubit to apply PHASE(180) to. Defaults to None.
 
         Returns:
-            np.array: Matrix for PHASE(90) gate on given qubit in comp. basis.
+            np.array: Matrix for PHASE(180) gate on given qubit in comp. basis.
         """
-        return self._operatorInBase(self._P(np.deg2rad(90)), qubit)
+        return self._operatorInBase(self._Z, qubit)
     
 
     def s(self, qubit=None) -> np.array:
@@ -392,6 +408,19 @@ class Simulator():
 
     # Root Gates
     def rootNot(self, qubit=None) -> np.array:
+        """Applies the ROOT-NOT (ROOT-X) gate to given qubit(s).
+        If no qubit is given (qubit=None) ROOT-NOT gate will be applied to all qubits.
+
+        Args:
+            qubit (int or list(int), optional): qubit to apply ROOT-NOT to. Defaults to None.
+
+        Returns:
+            np.array: Matrix for ROOT-NOT gate on given qubit in comp. basis.
+        """
+        return self._operatorInBase(self._ROOTX, qubit)
+
+
+    def rootX(self, qubit=None) -> np.array:
         """Applies the ROOT-NOT (ROOT-X) gate to given qubit(s).
         If no qubit is given (qubit=None) ROOT-NOT gate will be applied to all qubits.
 
