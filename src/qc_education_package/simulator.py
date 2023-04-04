@@ -12,15 +12,18 @@ import json
 class Simulator():
 
 
-    def __init__(self, n=1, jsonDump=None):
-        """Constructor for quantum simulator. Creates simulator for n qubit.
-        qubit are indexed from 1 to n, registers from 1 to N=2**n.
-        It is possible to restore a simulator object with a json dump.
+    def __init__(self, n=None, jsonDump=None, file=None):
+        """Constructor for quantum simulator. Creates simulator object. There a 3 setup methods.
+        1) Provide n (first parameter) Simulator(n=3) or Simulator(3), create a simulator object with 3 qubits
+        2) Restore a simulator object with a json dump Simulator(jsonDump=someDump)
+        3) Restore a simulator object from a state file Simulator(file='sim.state')
 
         Args:
-            n (int): Number of qubit, defaults to 1.
+            n (int, optional): Number of qubit, optional.
             jsonDump (str, optional): JSON Dump to restore simulator state from, optional.
+            file (str, optional): Path to simulator state file, optional.
         """
+        self._n = None
         # Prepare qubit base states
         self._zero = np.array([[1],[0]])
         self._one = np.array([[0],[1]])
@@ -38,20 +41,13 @@ class Simulator():
         self._Ry = lambda phi : np.array([[np.cos(phi/2), -1*np.sin(phi/2)],[np.sin(phi/2), np.cos(phi/2),]], dtype=complex) # Rotation about y-axis (Bloch Sphere)
         self._Rz = lambda phi : np.array([[np.exp(-1j*phi/2), 0],[0, np.exp(1j*phi/2)]], dtype=complex) # Rotation about z-axis (Bloch Sphere)
 
+        # Setup methods
         if jsonDump is not None:
-            state = json.loads(jsonDump)
-            self._n = int(state['n'])
-            amp = np.array(state['amp'])
-            phase = np.array(state['phase'])
-            self._register = amp*np.exp(1j*phase)
-            self._Q_bits = [self._zero] * self._n  # for showing start state in quantum circuit
+            self._restoreFromJsonDump(jsonDump)
+        elif file is not None:
+            self.restoreFromFile(file)
         else:
-            assert(n > 0) 
-            self._n = n
-            # qubit register
-            self._Q_bits = [self._zero] * self._n  # for showing start state in quantum circuit
-            self._register = self._nKron(self._Q_bits)
-        self._basis = np.identity(2**self._n)
+            self.reset(n)
         
 
     # Overrides
@@ -80,6 +76,46 @@ class Simulator():
         return False 
 
 
+    # export/import
+    def export_state(self, name = 'simulator', path=''):  
+        """Export current simulator state to file.
+
+        Args:
+            name (str, optional): Name for the export. Defaults to 'simulator'.
+            path (str, optional): Path to store at, end with '/' resp. '\\'. Defaults to '' -> working directory.
+        """
+        fname = f"{name}.state" if path == '' else f"{path}{name}.state"  # Not nice but avoids handling os specific path shenanigans
+        with open(fname, "w") as text_file:
+            text_file.write(str(self))
+            text_file.close()
+
+
+    def restoreFromFile(self, path):
+        """Restore simulator state from previously exported state
+
+        Args:
+            fname (str): relative or absolute path to file
+        """
+        with open(path, "r") as text_file:
+            self._restoreFromJsonDump(text_file.read())
+            text_file.close
+
+
+    def _restoreFromJsonDump(self, jsonDump):
+        """Restore simulator state from generated json dump. 
+        Dumps can be created using str(SimulatorObject)
+
+        Args:
+            jsonDump (str): json Dump of Simulator object
+        """
+        state = json.loads(jsonDump)
+        self._n = int(state['n'])
+        self._Ib = np.identity(2**self._n)  # Identity in comp. base
+        amp = np.array(state['amp'])
+        phase = np.array(state['phase'])
+        self._register = amp*np.exp(1j*phase)  # export was normed, no need to check here
+
+
     # Preparing state
     def reset(self, n=None):
         """Reset simulator to a system of n qubit with all qubit in state |0> (zero state).
@@ -90,9 +126,8 @@ class Simulator():
         """
         if n is not None and n != self._n:
             self._n = n
-            self._basis = np.identity(2**n)
-        self._Q_bits = [self._zero] * self._n  # for showing start state in quantum circuit
-        self._register = self._nKron(self._Q_bits)
+            self._Ib = np.identity(2**n)  # Identity in comp. base
+        self.write_integer(0)
 
    
     def write_integer(self, val, qubit=1):  
@@ -106,11 +141,12 @@ class Simulator():
         # Check if val can be represented by n_Q_bit qubit
         assert(val < 2**(self._n-qubit+1))
         i = qubit
+        Q_bits = []
         bval = np.binary_repr(val, width=self._n) # width is deprecated since numpy 1.12.0, alternative in sim.read
-        for d in bval[::-1]:
-            self._Q_bits[-i] = self._one if d == '1' else self._zero
+        for d in bval:
+            Q_bits.append(self._one if d == '1' else self._zero)
             i += 1
-        self._register = self._nKron(self._Q_bits)    
+        self._register = self._nKron(Q_bits).flatten()
 
 
     # Alias
@@ -134,7 +170,6 @@ class Simulator():
             a (list(float)): Complex values for each component of the quantum register.
         """
         assert(len(a)== 2**self._n)
-        self._Q_bits = None     # Register not defined by Q_bits
         a = np.array(a, dtype=complex)
         norm = np.linalg.norm(a)
         if abs(norm - 1) > 1e-6:
@@ -156,7 +191,6 @@ class Simulator():
         """
         assert(len(magnitude) == 2**self._n)
         assert(np.all(np.imag(magnitude) == 0))
-        self._Q_bits = None     # Register not defined by Qubits
         magnitude = np.array(magnitude)
         phase = np.array(phase)
         out = magnitude*np.exp(1j * np.deg2rad(phase))
@@ -610,10 +644,9 @@ class Simulator():
         Returns:
             np.array: i-th basis vector (row vector)
         """
-        return self._basis[:, i, None]
+        return self._Ib[:, i, None]
 
 
-    # TODO: Bitorder parameter
     def _nKron(self, ops_to_kron, bit_order=-1) -> np.array:
         """Helper function to apply cascade kroneker products in list
 
@@ -677,7 +710,7 @@ class Simulator():
         # |0><0| check if |0>, apply I if so 
         # For more than one control need to check |0>_i XOR |0>_j  i xor j <=> not(i and j)
         I = self._operatorInBase(self._I)  # I for 2*n
-        control0 = I - self._nKron(control1)
+        control0 = self._Ib - self._nKron(control1)
 
         # Add target operator
         control1[target_Q_bit] = operator #  apply U if |1><1|
