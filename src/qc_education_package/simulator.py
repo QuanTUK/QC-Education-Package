@@ -491,7 +491,7 @@ class Simulator():
         return self._controlledU(self._X, control_qubit, not_Q_bit)
 
 
-    def ccNot(self, control_qubit1, control_qubit2nt, not_Q_bit) -> np.array:
+    def ccNot(self, control_qubit1, control_qubit2, not_Q_bit) -> np.array:
         """Applies the CCNOT gate with given control qubit(s) and target qubit.
 
         Args:
@@ -613,17 +613,19 @@ class Simulator():
         return self._basis[:, i, None]
 
 
-    def _nKron(self, ops_to_kron) -> np.array:
+    # TODO: Bitorder parameter
+    def _nKron(self, ops_to_kron, bit_order=-1) -> np.array:
         """Helper function to apply cascade kroneker products in list
 
         Args:
             ops_to_kron (list[np.array]): list of matrices to apply in kroneker products
+            bit_order (1 or -1): 1 LSB right; -1 LSB left 
 
         Returns:
             np.array: Result
         """
         result = 1
-        for i in ops_to_kron[::-1]:               
+        for i in ops_to_kron[::bit_order]:               
             result = np.kron(i, result)     
         return result
 
@@ -644,11 +646,11 @@ class Simulator():
         else:
             if type(qubit) == list:
                 assert(len(qubit) > 0)
-            qubit = np.array(qubit, dtype=int)
+            qubit = np.array(qubit, dtype=int) - 1
             assert(np.all(qubit > 0))
             assert(np.all(qubit <= self._n))
             some_list = np.array([np.identity(2)] * self._n, dtype=complex)
-            some_list[-qubit] = operator # -qubit s.t. order of registers is correct 
+            some_list[qubit] = operator # -qubit s.t. order of registers is correct 
         op =self._nKron(some_list)
         self._register = op @ self._register
         return op
@@ -665,19 +667,20 @@ class Simulator():
         Returns:
             np.array: Matrix for controlled operator in comp. basis.
         """
-        control_qubit = np.array(control_qubit, dtype=int)
+        control_qubit = np.array(control_qubit, dtype=int) - 1
+        target_Q_bit -= 1
         assert(np.all(target_Q_bit != control_qubit))
         
         control1 = np.array([np.identity(2)] * self._n, dtype=complex)
-        control1[-control_qubit] = np.array([[0,0],[0,1]])  # |1><1| check if |1>
+        control1[control_qubit] = np.array([[0,0],[0,1]])  # |1><1| check if |1>
 
-        # NOTE: Test for >3 Qubits!
         # |0><0| check if |0>, apply I if so 
         # For more than one control need to check |0>_i XOR |0>_j  i xor j <=> not(i and j)
         I = self._operatorInBase(self._I)  # I for 2*n
         control0 = I - self._nKron(control1)
 
-        control1[-target_Q_bit] = operator #  apply U if |1><1|
+        # Add target operator
+        control1[target_Q_bit] = operator #  apply U if |1><1|
         control1 = self._nKron(control1)  
         
         op = control0 + control1
