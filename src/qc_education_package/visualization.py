@@ -321,10 +321,8 @@ class DimensionalCircleNotation(Visualization):
             self._ax.add_artist(phase)
         # Add label to circle
         label = np.binary_repr(index, width=self._sim._n) # width is deprecated since numpy 1.12.0
-        # print(index, label)
         off = 1.3
         off_magn_phase = .35
-        place = -1 if int(label[1]) else 1
         if self._sim._n == 3:
             place = -1 if int(label[1]) else 1
         elif self._sim._n == 2:

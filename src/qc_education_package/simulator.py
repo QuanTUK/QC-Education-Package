@@ -675,14 +675,12 @@ class Simulator():
         Returns:
             np.array: Operator U applied to qubit in comp. basis.
         """
-        print(qubit)
         if qubit is None:
             some_list = [operator] * self._n  
         else:
             if type(qubit) == list:
                 assert(len(qubit) > 0)
             qubit = np.array(qubit, dtype=int) - 1
-            print(qubit)
             assert(np.all(qubit >= 0))
             assert(np.all(qubit <= self._n))
             some_list = np.array([np.identity(2)] * self._n, dtype=complex)
