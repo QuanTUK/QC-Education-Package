@@ -47,6 +47,7 @@ class Simulator():
         elif file is not None:
             self.restoreFromFile(file)
         else:
+            assert(type(n)==int)
             self.reset(n)
         
 

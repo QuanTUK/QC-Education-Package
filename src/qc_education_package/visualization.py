@@ -172,16 +172,17 @@ class DimensionalCircleNotation(Visualization):
     """A Visualization subclass for the newly introduced Dimensional Circle Notation (DCN) representation.
     """
 
-    def __init__(self, simulator):
+    def __init__(self, simulator, show_values=False):
         """Constructor for the Dimensional Circle Notation representation.
         This representation can be used for up to 3 qubits.
 
         Args:
             simulator (qc_simulator.simulator): Simulator object to be visualized.
+            show_values (bool): Show magnitude and phase for each state, defaults to False.
         """
         assert(simulator._n <= 3)  # DCN is made for up to 3 qubits
         self._sim = simulator
-
+        self._showMagnPhase = show_values
         # Style of circles
         self._colors = {'edge': 'black', 'bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#5a5a5a'}
         self._widths = {'edge': .5, 'phase': .5, 'cube': .5, 'textsize': 10, 'textwidth': .1}
@@ -321,11 +322,16 @@ class DimensionalCircleNotation(Visualization):
         # Add label to circle
         label = np.binary_repr(index, width=self._sim._n) # width is deprecated since numpy 1.12.0
         # print(index, label)
+        off = 1.3
+        off_magn_phase = .35
+        place = -1 if int(label[1]) else 1
         if self._sim._n == 3:
-            off = -1.3 if int(label[1]) else 1.3
+            place = -1 if int(label[1]) else 1
         elif self._sim._n == 2:
-            off = -1.3 if int(label[0]) else 1.3
+            place = -1 if int(label[0]) else 1
         else: 
-            off = -1.3
-        self._ax.text(xpos, ypos + off, fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')
-            
+            place = -1
+
+        self._ax.text(xpos, ypos + place*off, fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')
+        if self._showMagnPhase: 
+            self._ax.text(xpos, ypos + place*(off+off_magn_phase), f'{self._val[index]:+2.3f} | {np.rad2deg(self._phi[index]):+2.0f}°', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')

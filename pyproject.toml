@@ -5,14 +5,14 @@ dependencies = [
   "matplotlib >= 3.7.0",
   "numpy >= 1.22.4",
 ]
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Nikolas Longen", email="nlongen@rptu.de" },
   { name="Maximilian Kiefer-Emmanouilidis", email="maximilian.kiefer@rptu.de" }
 ]
 description = "Quantuk QC-Education-Package"
 readme = "README.md"
-requires-python = ">=3.9.16"
+requires-python = ">=3.9.2"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
