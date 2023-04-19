@@ -540,7 +540,7 @@ class Simulator():
         return self._controlledU(self._X, [control_qubit1, control_qubit2], not_Q_bit)
 
 
-    def cPhase(self, control_qubit, target_Q_bit, angle) -> np.array:
+    def cPhase(self, angle, control_qubit, target_Q_bit) -> np.array:
         """Applies the CPHASE gate with given angle in deg, given control qubit(s) and target qubit.
 
         Args:
@@ -554,7 +554,7 @@ class Simulator():
         return self._controlledU(self._P(np.deg2rad(angle)), control_qubit, target_Q_bit)
 
 
-    def cRx(self, control_qubit, target_Q_bit, angle) -> np.array:
+    def cRx(self, angle, control_qubit, target_Q_bit) -> np.array:
         """Applies the controlled Rx gate with given angle in deg, given control qubit(s) and target qubit.
 
         Args:
@@ -568,7 +568,7 @@ class Simulator():
         return self._controlledU(self._Rx(np.deg2rad(angle)), control_qubit, target_Q_bit)
 
 
-    def cRy(self, control_qubit, target_Q_bit, angle) -> np.array:
+    def cRy(self, angle, control_qubit, target_Q_bit) -> np.array:
         """Applies the controlled Rx gate with given angle in deg, given control qubit(s) and target qubit.
 
         Args:
@@ -582,7 +582,7 @@ class Simulator():
         return self._controlledU(self._Ry(np.deg2rad(angle)), control_qubit, target_Q_bit)
 
 
-    def cRz(self, control_qubit, target_Q_bit, angle) -> np.array:
+    def cRz(self, angle, control_qubit, target_Q_bit) -> np.array:
         """Applies the controlled Rz gate with given angle in deg, given control qubit(s) and target qubit.
 
         Args:
