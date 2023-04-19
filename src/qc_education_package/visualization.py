@@ -184,8 +184,8 @@ class DimensionalCircleNotation(Visualization):
         self._sim = simulator
         self._showMagnPhase = show_values
         # Style of circles
-        self._colors = {'edge': 'black', 'bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#5a5a5a'}
-        self._widths = {'edge': .5, 'phase': .5, 'cube': .5, 'textsize': 10, 'textwidth': .1}
+        self._colors = {'edge': 'black', 'bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#8a8a8a'}
+        self._widths = {'edge': .7, 'phase': .7, 'cube': .5, 'textsize': 10, 'textwidth': .1}
         self._arrowStyle = {'width':.03, 'head_width':.3, 'head_length':.5, 'edgecolor':None, 'facecolor':'black'}
 
         # Placement
