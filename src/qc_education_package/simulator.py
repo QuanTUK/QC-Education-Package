@@ -648,7 +648,7 @@ class Simulator():
         return self._Ib[:, i, None]
 
 
-    def _nKron(self, ops_to_kron, bit_order=-1) -> np.array:
+    def _nKron(self, ops_to_kron, bit_order=1) -> np.array:
         """Helper function to apply cascade kroneker products in list
 
         Args:
