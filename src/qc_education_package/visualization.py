@@ -5,6 +5,7 @@
     # Project: DCN QuanTUK
 #----------------------------------------------------------------------------
 from .simulator import Simulator
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
@@ -30,6 +31,8 @@ class Visualization:
         self._fig = None
         self._colors = None
         self._widths = None
+        # TODO: add parse_math option for svg import to latex doc, set use_tex=False with rcParams
+        # TODO: build universal constructor
       
 
     def export_png(self, fname:str):
@@ -56,6 +59,7 @@ class Visualization:
         Args:
             fname (str): fname or path to export image to.
         """
+        mpl.rcParams['svg.fonttype'] = 'none'
         self._export(fname, 'svg')
 
 
@@ -86,6 +90,7 @@ class Visualization:
 
 
     def _export(self, target, formatStr='png'):
+        # TODO: Add transparent option
         """General export method to save current pyplot figure, so all all exports will share same form factor, res etc.  
 
         Args:
@@ -104,6 +109,7 @@ class Visualization:
 
 
     def draw(self):
+        # TODO: Add style guide for draw method
         pass
 
 
@@ -111,13 +117,15 @@ class CircleNotation(Visualization):
     """A Visualization subclass for the well known Circle Notation representation.
     """
 
-    def __init__(self, simulator, cols=None):
+    def __init__(self, simulator, cols=None, parse_math=True):
         """Constructor for the Circle Notation representation.
 
         Args:
             simulator (qc_simulator.simulator): Simulator object to be visualized.
             cols (int, optional): Arrange Circle Notation into a set of columns. Defaults to None.
         """
+        mpl.rcParams['text.usetex'] = False
+        mpl.rcParams['text.parse_math'] = parse_math
         self._sim = simulator
         self._colors = {'edge': 'black', 'fill': '#77b6ba', 'phase': 'black'}
         self._widths = {'edge': 1, 'phase': 1}
@@ -156,7 +164,7 @@ class CircleNotation(Visualization):
             ax.add_artist(ring)
             ax.add_artist(phase)
             label = np.binary_repr(i, width=self._sim._n) # width is deprecated since numpy 1.12.0
-            ax.text(xpos, ypos - 1.35, f'|{label:s}>', horizontalalignment='center', verticalalignment='center')
+            ax.text(xpos, ypos - 1.35, fr'$|{label:s}\rangle$', horizontalalignment='center', verticalalignment='center')
             # NOTE text vs TextPath: text can easily be centered, textpath size is fixed when zooming
             # tp = TextPath((xpos-0.2*len(label), ypos - 1.35), f'|{label:s}>', size=0.4)
             # ax.add_patch(PathPatch(tp, color="black"))
@@ -168,24 +176,29 @@ class CircleNotation(Visualization):
 
 
 
-class DimensionalCircleNotation(Visualization):
+class DimensionalCircleNotation(Visualization, ):
     """A Visualization subclass for the newly introduced Dimensional Circle Notation (DCN) representation.
     """
 
-    def __init__(self, simulator, show_values=False):
+    def __init__(self, simulator, show_values=False, parse_math=True):
         """Constructor for the Dimensional Circle Notation representation.
         This representation can be used for up to 3 qubits.
+        
 
         Args:
             simulator (qc_simulator.simulator): Simulator object to be visualized.
             show_values (bool): Show magnitude and phase for each state, defaults to False.
         """
+        mpl.rcParams['text.usetex'] = False
+        mpl.rcParams['text.parse_math'] = parse_math
         assert(simulator._n <= 3)  # DCN is made for up to 3 qubits
+        # TODO: 4-5 Qubits 
         self._sim = simulator
         self._showMagnPhase = show_values
         # Style of circles
         self._colors = {'edge': 'black', 'bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#8a8a8a'}
         self._widths = {'edge': .7, 'phase': .7, 'cube': .5, 'textsize': 10, 'textwidth': .1}
+        self._textsize = {'register': 10, 'magphase':10, 'axislbl':10}
         self._arrowStyle = {'width':.03, 'head_width':.3, 'head_length':.5, 'edgecolor':None, 'facecolor':'black'}
 
         # Placement
@@ -268,12 +281,12 @@ class DimensionalCircleNotation(Visualization):
         alen = self._c*2/3 
         if self._sim._n > 2:
             di = alen / np.sqrt(2)
-            self._ax.text(x0+di/2-.15, y0+di/2+.15, 'Qubit #3', size=self._widths['textsize'], usetex=False, horizontalalignment='right', verticalalignment='center')
+            self._ax.text(x0+di/2.15, y0+di/2+.15, 'Qubit #3', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
             self._ax.arrow(x0, y0, di, di, **self._arrowStyle)
         if self._sim._n > 1:
-            self._ax.text(x0-.3, y0-alen/2, 'Qubit #2', size=self._widths['textsize'], usetex=False, horizontalalignment='right', verticalalignment='center')
+            self._ax.text(x0-.3, y0-alen/2, 'Qubit #2', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
             self._ax.arrow(x0, y0, 0, -alen, **self._arrowStyle)
-        self._ax.text(x0+alen/2, y0+.3, 'Qubit #1', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')    
+        self._ax.text(x0+alen/2+.2, y0+.3, 'Qubit #1', size=self._textsize['axislbl'], horizontalalignment='center', verticalalignment='center')    
         self._ax.arrow(x0, y0, alen, 0, **self._arrowStyle)
 
 
@@ -332,6 +345,6 @@ class DimensionalCircleNotation(Visualization):
         else: 
             place = -1
 
-        self._ax.text(xpos, ypos + place*off, fr'$|{label:s}\rangle$', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')
+        self._ax.text(xpos, ypos + place*off, fr'$|{label:s}\rangle$', size=self._textsize['register'], horizontalalignment='center', verticalalignment='center')
         if self._showMagnPhase: 
-            self._ax.text(xpos, ypos + place*(off+off_magn_phase), f'{self._val[index]:+2.3f} | {np.rad2deg(self._phi[index]):+2.0f}°', size=self._widths['textsize'], usetex=False, horizontalalignment='center', verticalalignment='center')
+            self._ax.text(xpos, ypos + place*(off+off_magn_phase), f'{self._val[index]:+2.3f} | {np.rad2deg(self._phi[index]):+2.0f}°', size=_textsize['magphase'], horizontalalignment='center', verticalalignment='center')

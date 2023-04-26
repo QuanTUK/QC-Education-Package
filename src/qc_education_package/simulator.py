@@ -23,6 +23,7 @@ class Simulator():
             jsonDump (str, optional): JSON Dump to restore simulator state from, optional.
             file (str, optional): Path to simulator state file, optional.
         """
+        # TODO: Parameter to specify bitorder object wide (write, nkron)
         self._n = None
         # Prepare qubit base states
         self._zero = np.array([[1],[0]])
@@ -131,7 +132,7 @@ class Simulator():
         self.write_integer(0)
 
    
-    def write_integer(self, val, qubit=1):  
+    def write_integer(self, val, qubit=1, bit_order=1):  
         """Write given integer value in binary starting a position qubit. If no qubit parameter is passed, start
         with first qubit. Attention! This will override the register. Use this only to prepare your qubit/register.
 
@@ -144,7 +145,8 @@ class Simulator():
         i = qubit
         Q_bits = []
         bval = np.binary_repr(val, width=self._n) # width is deprecated since numpy 1.12.0, alternative in sim.read
-        for d in bval:
+        
+        for d in bval[::bit_order*(-1)]:
             Q_bits.append(self._one if d == '1' else self._zero)
             i += 1
         self._register = self._nKron(Q_bits).flatten()
