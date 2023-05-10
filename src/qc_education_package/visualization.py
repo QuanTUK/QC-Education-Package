@@ -15,55 +15,57 @@ from io import BytesIO
 from base64 import b64encode
 import numpy as np
 
-
+# TODO: Bitorder!!
 class Visualization:
     """Superclass for all visualizations of quantum computer states. 
     This way all visualizations inherit export methods. 
     Alle subclasses must implement/overwrite a draw method and should also overwrite the __init__ method.
     """
-    def __init__(self, simulator):
+    def __init__(self, simulator, parse_math=True):
         """Constructor for Visualization superclass.
 
         Args:
             simulator (qc_simulator.simulator): Simulator object to be visualized.
         """
         self._sim = simulator
+        self._bitOrder = simulator._bitOrder
         self._fig = None
         self._colors = None
         self._widths = None
-        # TODO: add parse_math option for svg import to latex doc, set use_tex=False with rcParams
-        # TODO: build universal constructor
+
+        mpl.rcParams['text.usetex'] = False
+        mpl.rcParams['text.parse_math'] = parse_math
       
 
-    def export_png(self, fname:str):
+    def export_png(self, fname:str, transparent=True):
         """Export the current visualization as PNG image to given path.
 
         Args:
             fname (str): fname or path to export image to.
         """
-        self._export(fname, 'png')
+        self._export(fname, 'png', transparent)
 
 
-    def export_pdf(self, fname:str):
+    def export_pdf(self, fname:str, transparent=True):
         """Export the current visualization as PDF file to given path.
 
         Args:
             fname (str): fname or path to export file to.
         """
-        self._export(fname, 'pdf')
+        self._export(fname, 'pdf', transparent)
     
 
-    def export_svg(self, fname:str):
+    def export_svg(self, fname:str, transparent=True):
         """Export the current visualization as SVG image to given path.
 
         Args:
             fname (str): fname or path to export image to.
         """
         mpl.rcParams['svg.fonttype'] = 'none'
-        self._export(fname, 'svg')
+        self._export(fname, 'svg', transparent)
 
 
-    def export_base64(self, formatStr='png'):
+    def export_base64(self, formatStr='png', transparent=True):
         """Export given format as base64 string. Mostly to handover images for flask website.
 
         Args:
@@ -72,10 +74,10 @@ class Visualization:
         Returns:
             str: base64 string representation of the generated image.
         """
-        return b64encode(self._export_buffer(formatStr)).decode("ascii")
+        return b64encode(self._export_buffer(formatStr, transparent)).decode("ascii")
 
 
-    def _export_buffer(self, formatStr):
+    def _export_buffer(self, formatStr, transparent=True):
         """Export current visualization in format into IO buffer. 
 
         Args:
@@ -85,11 +87,11 @@ class Visualization:
             BytesIO: returns view of buffer containing image using BytesIO.getbuffer()
         """
         buf = BytesIO()
-        self._export(buf, formatStr)
+        self._export(buf, formatStr, transparent)
         return buf.getbuffer()
 
 
-    def _export(self, target, formatStr='png'):
+    def _export(self, target, formatStr='png', transparent=True):
         # TODO: Add transparent option
         """General export method to save current pyplot figure, so all all exports will share same form factor, res etc.  
 
@@ -98,7 +100,7 @@ class Visualization:
             formatStr (str, optional): Format for image. Defaults to 'png'.
         """
         self.draw()
-        self._fig.savefig(target, format=formatStr, bbox_inches='tight', pad_inches=0, dpi=300, transparent=True)
+        self._fig.savefig(target, format=formatStr, bbox_inches='tight', pad_inches=0, dpi=300, transparent=transparent)
 
 
     def show(self):
@@ -117,27 +119,25 @@ class CircleNotation(Visualization):
     """A Visualization subclass for the well known Circle Notation representation.
     """
 
-    def __init__(self, simulator, cols=None, parse_math=True):
+    def __init__(self, simulator):
         """Constructor for the Circle Notation representation.
 
         Args:
             simulator (qc_simulator.simulator): Simulator object to be visualized.
             cols (int, optional): Arrange Circle Notation into a set of columns. Defaults to None.
         """
-        mpl.rcParams['text.usetex'] = False
-        mpl.rcParams['text.parse_math'] = parse_math
-        self._sim = simulator
+        super().__init__(simulator)  # Execute constructor of superclass
+        
         self._colors = {'edge': 'black', 'fill': '#77b6ba', 'phase': 'black'}
         self._widths = {'edge': 1, 'phase': 1}
         self._circleDist = 3
-
         self._fig = None
-        self._cols = cols if cols != None else 2**self._sim._n      
+              
         
-        
-    def draw(self):
+    def draw(self, cols=None):
         """Draw Circle Notation representation of current simulator state.
         """
+        self._cols = cols if cols != None else 2**self._sim._n
         bits = 2**self._sim._n
         x_max = self._circleDist * self._cols
         y_max = self._circleDist * bits/self._cols
@@ -168,19 +168,17 @@ class CircleNotation(Visualization):
             # NOTE text vs TextPath: text can easily be centered, textpath size is fixed when zooming
             # tp = TextPath((xpos-0.2*len(label), ypos - 1.35), f'|{label:s}>', size=0.4)
             # ax.add_patch(PathPatch(tp, color="black"))
-            # NOTE Area/prop as text inside circle?
             xpos += self._circleDist
             if (i+1) % self._cols == 0:
                 xpos = self._circleDist / 2
                 ypos -= self._circleDist
 
 
-
 class DimensionalCircleNotation(Visualization, ):
     """A Visualization subclass for the newly introduced Dimensional Circle Notation (DCN) representation.
     """
 
-    def __init__(self, simulator, show_values=False, parse_math=True):
+    def __init__(self, simulator):
         """Constructor for the Dimensional Circle Notation representation.
         This representation can be used for up to 3 qubits.
         
@@ -189,12 +187,10 @@ class DimensionalCircleNotation(Visualization, ):
             simulator (qc_simulator.simulator): Simulator object to be visualized.
             show_values (bool): Show magnitude and phase for each state, defaults to False.
         """
-        mpl.rcParams['text.usetex'] = False
-        mpl.rcParams['text.parse_math'] = parse_math
+        super().__init__(simulator)  # Execute constructor of superclass
         assert(simulator._n <= 3)  # DCN is made for up to 3 qubits
         # TODO: 4-5 Qubits 
-        self._sim = simulator
-        self._showMagnPhase = show_values
+
         # Style of circles
         self._colors = {'edge': 'black', 'bg': 'white', 'fill': '#77b6baff', 'phase': 'black', 'cube': '#8a8a8a'}
         self._widths = {'edge': .7, 'phase': .7, 'cube': .5, 'textsize': 10, 'textwidth': .1}
@@ -217,8 +213,8 @@ class DimensionalCircleNotation(Visualization, ):
         self._coords *= self._c   
         # offset 3rd dim qubits 
         self._coords[4:] = self._coords[:4] + self._o
-        # center around origin
-        # self._coords -= self._c/2
+
+        self._axis_labels = ['#3', '#2', '#1'][::self._bitOrder]
         
         self._fig = None
         self._ax = None
@@ -226,9 +222,10 @@ class DimensionalCircleNotation(Visualization, ):
         self._lx, self._ly = None, None
          
         
-    def draw(self):
+    def draw(self, show_values=False):
         """Draw Dimensional Circle Notation representation of current simulator state.
         """
+        self._showMagnPhase = show_values
         self._fig = plt.figure(layout='compressed')
         self._ax = self._fig.gca()
         self._ax.set_axis_off()
@@ -281,12 +278,12 @@ class DimensionalCircleNotation(Visualization, ):
         alen = self._c*2/3 
         if self._sim._n > 2:
             di = alen / np.sqrt(2)
-            self._ax.text(x0+di/2.15, y0+di/2+.15, 'Qubit #3', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
+            self._ax.text(x0+di/2.15, y0+di/2+.15, f'Qubit {self._axis_labels[2]}', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
             self._ax.arrow(x0, y0, di, di, **self._arrowStyle)
         if self._sim._n > 1:
-            self._ax.text(x0-.3, y0-alen/2, 'Qubit #2', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
+            self._ax.text(x0-.3, y0-alen/2, f'Qubit {self._axis_labels[1]}', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
             self._ax.arrow(x0, y0, 0, -alen, **self._arrowStyle)
-        self._ax.text(x0+alen/2+.2, y0+.3, 'Qubit #1', size=self._textsize['axislbl'], horizontalalignment='center', verticalalignment='center')    
+        self._ax.text(x0+alen/2+.2, y0+.3, f'Qubit {self._axis_labels[0]}', size=self._textsize['axislbl'], horizontalalignment='center', verticalalignment='center')    
         self._ax.arrow(x0, y0, alen, 0, **self._arrowStyle)
 
 
@@ -347,4 +344,4 @@ class DimensionalCircleNotation(Visualization, ):
 
         self._ax.text(xpos, ypos + place*off, fr'$|{label:s}\rangle$', size=self._textsize['register'], horizontalalignment='center', verticalalignment='center')
         if self._showMagnPhase: 
-            self._ax.text(xpos, ypos + place*(off+off_magn_phase), f'{self._val[index]:+2.3f} | {np.rad2deg(self._phi[index]):+2.0f}°', size=_textsize['magphase'], horizontalalignment='center', verticalalignment='center')
+            self._ax.text(xpos, ypos + place*(off+off_magn_phase), f'{self._val[index]:+2.3f} | {np.rad2deg(self._phi[index]):+2.0f}°', size=self._textsize['magphase'], horizontalalignment='center', verticalalignment='center')
