@@ -15,7 +15,7 @@ from io import BytesIO
 from base64 import b64encode
 import numpy as np
 
-# TODO: Bitorder!!
+
 class Visualization:
     """Superclass for all visualizations of quantum computer states. 
     This way all visualizations inherit export methods. 
@@ -256,17 +256,19 @@ class DimensionalCircleNotation(Visualization, ):
         # coordinate axis
         if self._sim._n == 1:
             self._drawArrows(-1, self._c + 2)  
-            self._ax.set_xlim([-1.2, 6.2])
-            self._ax.set_ylim([3.5, 7.5])
+            # self._ax.set_xlim([-1.2, 6.2])
+            # self._ax.set_ylim([3.5, 7.5])
         elif self._sim._n == 2:
             self._drawArrows(-2.5, self._c + 2.5)  
-            self._ax.set_xlim([-4, 6.2])
-            self._ax.set_ylim([-2,8])
+            # self._ax.set_xlim([-4, 6.2])
+            # self._ax.set_ylim([-2,8])
         elif self._sim._n == 3:
-            self._ax.set_xlim([-5, 8.7])
-            self._ax.set_ylim([-2, 10.35])
             self._drawArrows(-self._c+self._o*2/3, self._c + 2.5)  
-
+            # self._ax.set_xlim([-5, 8.7])
+            # self._ax.set_ylim([-2, 10.35])
+            
+        self._ax.set_xlim([-5, 8.7])
+        self._ax.set_ylim([-2, 10.35])
 
     def _drawArrows(self, x0, y0):
         """Helper method to draw arrows for coordinate axis at given position.
