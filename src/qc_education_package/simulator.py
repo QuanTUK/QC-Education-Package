@@ -12,7 +12,7 @@ import json
 class Simulator():
 
 
-    def __init__(self, n=None, jsonDump=None, file=None):
+    def __init__(self, n=None, jsonDump=None, file=None, bitorder='big'):
         """Constructor for quantum simulator. Creates simulator object. There a 3 setup methods.
         1) Provide n (first parameter) Simulator(n=3) or Simulator(3), create a simulator object with 3 qubits
         2) Restore a simulator object with a json dump Simulator(jsonDump=someDump)
@@ -22,9 +22,17 @@ class Simulator():
             n (int, optional): Number of qubit, optional.
             jsonDump (str, optional): JSON Dump to restore simulator state from, optional.
             file (str, optional): Path to simulator state file, optional.
+            littleEndian (str, optional): If 'big' bitorder big endian, if 'little' little endian, optional. Defaults to 'big'
         """
-        # TODO: Parameter to specify bitorder object wide (write, nkron)
+        # Standard bitorder big endian
         self._n = None
+        if bitorder=='big':
+            self._bitOrder = -1
+        elif bitorder=='little':
+            self._bitOrder = 1
+        else:
+            raise Exception("Unknown format for bitorder.")
+
         # Prepare qubit base states
         self._zero = np.array([[1],[0]])
         self._one = np.array([[0],[1]])
@@ -61,7 +69,7 @@ class Simulator():
         """
         amp = np.abs(self._register).flatten().tolist()
         phase = np.angle(self._register).flatten().tolist()
-        return json.dumps({'n': self._n, 'amp': amp, 'phase': phase})
+        return json.dumps({'n': self._n, 'amp': amp, 'phase': phase, 'bitorder': self._bitOrder})
 
 
     def __eq__(self, o):
@@ -72,9 +80,12 @@ class Simulator():
 
         Returns:
             bool: True if given registers of simulators equal, else False
-        """
-        if isinstance(o, Simulator):
-            return np.array_equal(self._register, o._register)
+        """  
+        if o._bitOrder == self._bitOrder:
+            if isinstance(o, Simulator):
+                return np.array_equal(self._register, o._register)
+        else:
+            print("Can't compare due to different (qu)bitorder.")
         return False 
 
 
@@ -113,6 +124,7 @@ class Simulator():
         state = json.loads(jsonDump)
         self._n = int(state['n'])
         self._Ib = np.identity(2**self._n)  # Identity in comp. base
+        self._bitOrder = state['bitorder']
         amp = np.array(state['amp'])
         phase = np.array(state['phase'])
         self._register = amp*np.exp(1j*phase)  # export was normed, no need to check here
@@ -132,7 +144,7 @@ class Simulator():
         self.write_integer(0)
 
    
-    def write_integer(self, val, qubit=1, bit_order=1):  
+    def write_integer(self, val, qubit=1):  
         """Write given integer value in binary starting a position qubit. If no qubit parameter is passed, start
         with first qubit. Attention! This will override the register. Use this only to prepare your qubit/register.
 
@@ -144,10 +156,9 @@ class Simulator():
         assert(val < 2**(self._n-qubit+1))
         i = qubit
         Q_bits = []
-        bval = np.binary_repr(val, width=self._n) # width is deprecated since numpy 1.12.0, alternative in sim.read
-        
-        for d in bval[::bit_order*(-1)]:
-            Q_bits.append(self._one if d == '1' else self._zero)
+        bval = np.array(list(np.binary_repr(val).zfill(self._n)), dtype=np.int8) 
+        for d in bval:
+            Q_bits.append(self._one if d else self._zero)
             i += 1
         self._register = self._nKron(Q_bits).flatten()
 
@@ -175,13 +186,13 @@ class Simulator():
         assert(len(a)== 2**self._n)
         a = np.array(a, dtype=complex)
         norm = np.linalg.norm(a)
+        assert(norm > 1e-6) # norm > 0
         if abs(norm - 1) > 1e-6:
             print(f"The given amplitudes lead to a not normed state.\nbefore: {np.array2string(np.abs(a), precision=2, floatmode='fixed')}, norm = {norm:2.2f}\nNormalizing...")
             a = a / norm
             print(f"after: {np.array2string(np.abs(a), precision=2, floatmode='fixed')}, norm = {np.linalg.norm(a):2.2f}")
-        self._register = np.zeros(len(a), dtype=complex)
-        for i in range(len(a)):
-            self._register[i] = a[i]
+        self._register = a
+
 
 
     def write_magn_phase(self, magnitude, phase):
@@ -224,7 +235,7 @@ class Simulator():
             proj = self._H
         elif type(basis) == np.array:
             print("Using custom projector for measurement.")
-            # NOTE: expecting 2x2 single qubit operation here. May support suitable matrix, too
+            # NOTE: expecting 2x2 single qubit operation here.
             proj = basis
 
         if qubit is None:
@@ -235,28 +246,27 @@ class Simulator():
             prop = np.square(np.abs(self._register)).flatten()
             result = np.random.choice(a=2**self._n, p=prop)  # choice uses np.arange 0 to a, hence +1
             self.write_integer(result)
-            out = format(result, '0b')
-            # Add leading zeros
-            if len(out)< self._n:
-                out = '0' * (self._n-len(out)) + out
+            out = np.binary_repr(result).zfill(self._n)
             msg = f"Measured state |{out}>."
-        else:
-            # Measuring one qubit
+
+
+        elif type(qubit) == int: # Measuring one qubit
             # Measuring using projector to subspace
             if basis != 'c':
                 # project all qubit with given projector, POVM Measurement
                 self._operatorInBase(proj, qubit)
             # Prop for qubit i in |0> by projection using sp
             pro0 = [np.identity(2)] * self._n 
+            
             # Projective measurement -> POVM
-            pro0[-qubit] = self._zero @ self._zero.T # -qubit s.t. order of registers is correct
-            pro0 = self._nKron(pro0)
+            qb = self._n-qubit if self._bitOrder else qubit-1  # for correct bitorder little/big endian
+            pro0[qb] = self._zero @ self._zero.T 
+            pro0 = self._nKron(pro0) 
             state0 = pro0 @ self._register
             p0 = np.linalg.norm(state0)
             # Prop for qubit i in |1> by projection using sp
             pro1 = [np.identity(2)] * self._n  
-            # Projective measurement -> POVM
-            pro1[-qubit] = self._one  @ self._one.T  # -qubit s.t. order of registers is correct
+            pro1[qb] = self._one  @ self._one.T  
             pro1 = self._nKron(pro1)
             state1 = pro1 @ self._register
             p1 = np.linalg.norm(state1)
@@ -264,11 +274,22 @@ class Simulator():
             assert(1 - p0 - p1 < 1e-6)
             # Project to new state
             result = np.random.choice(a=[0,1], p=[p0**2, p1**2])
-            state = state1 if result else state0  # True/False is alias for 1/0 in Python 
+            state = state1 if result else state0 
             norm = p1 if result else p0
             # Normalize state
             self._register = state / norm
             msg =  f"Measurement qubit {qubit:2d}: |{result:d}> \t (|0>: {p0**2:2.2%} |1>: {p1**2:2.2%})."
+
+
+        elif type(qubit) == list:
+            msg = ""
+            for qb in qubit:
+                msg += f"{self.read(qb)}'\n'"
+
+
+        else:
+            raise Exception('Qubit has wrong type. Pass int or list of int or None')
+           
         print(msg)
         return msg
 
@@ -650,18 +671,17 @@ class Simulator():
         return self._Ib[:, i, None]
 
 
-    def _nKron(self, ops_to_kron, bit_order=1) -> np.array:
+    def _nKron(self, ops_to_kron) -> np.array:
         """Helper function to apply cascade kroneker products in list
 
         Args:
             ops_to_kron (list[np.array]): list of matrices to apply in kroneker products
-            bit_order (1 or -1): 1 LSB right; -1 LSB left 
 
         Returns:
             np.array: Result
         """
         result = 1
-        for i in ops_to_kron[::bit_order]:               
+        for i in ops_to_kron[::self._bitOrder]:               
             result = np.kron(i, result)     
         return result
 
@@ -682,11 +702,12 @@ class Simulator():
         else:
             if type(qubit) == list:
                 assert(len(qubit) > 0)
-            qubit = np.array(qubit, dtype=int) - 1
+            qubit = np.array(qubit, dtype=int)
             assert(np.all(qubit >= 0))
             assert(np.all(qubit <= self._n))
+            qubit = self._n-qubit if self._bitOrder else qubit-1  # for correct bitorder little/big endian
             some_list = np.array([np.identity(2)] * self._n, dtype=complex)
-            some_list[qubit] = operator # -qubit s.t. order of registers is correct 
+            some_list[qubit] = operator 
         op =self._nKron(some_list)
         self._register = op @ self._register
         return op
@@ -703,8 +724,12 @@ class Simulator():
         Returns:
             np.array: Matrix for controlled operator in comp. basis.
         """
-        control_qubit = np.array(control_qubit, dtype=int) - 1
-        target_Q_bit -= 1
+        # bitorder
+        assert(control_qubit > 0 and control_qubit <= self._n)
+        assert(target_Q_bit > 0 and target_Q_bit <= self._n)
+        control_qubit = np.array(control_qubit, dtype=int)
+        control_qubit = self._n-control_qubit if self._bitOrder else control_qubit-1  # for correct bitorder little/big endian
+        target_Q_bit = self._n-target_Q_bit if self._bitOrder else target_Q_bit-1  # for correct bitorder little/big endian
         assert(np.all(target_Q_bit != control_qubit))
         
         control1 = np.array([np.identity(2)] * self._n, dtype=complex)
