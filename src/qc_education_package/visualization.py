@@ -32,7 +32,7 @@ class Visualization:
         self._fig = None
         self._colors = None
         self._widths = None
-
+        self._lastState = None
         mpl.rcParams['text.usetex'] = False
         mpl.rcParams['text.parse_math'] = parse_math
       
@@ -92,22 +92,28 @@ class Visualization:
 
 
     def _export(self, target, formatStr='png', transparent=True):
-        # TODO: Add transparent option
         """General export method to save current pyplot figure, so all all exports will share same form factor, res etc.  
 
         Args:
             target (plt.savefig compatible object): Target to save pyplot figure to.
             formatStr (str, optional): Format for image. Defaults to 'png'.
         """
-        self.draw()
+        self._redraw()
         self._fig.savefig(target, format=formatStr, bbox_inches='tight', pad_inches=0, dpi=300, transparent=transparent)
 
 
     def show(self):
         """Method to show current figure using plt.show but making sure the visualization is always redrawn.
         """ 
-        self.draw()
+        self._redraw()
         plt.show()
+
+
+    def _redraw(self):
+        """Checks if simulator state is changed and redraws the image if so.
+        """
+        if self._lastState != self._sim:
+            self.draw()
 
 
     def draw(self):
@@ -214,18 +220,24 @@ class DimensionalCircleNotation(Visualization, ):
         # offset 3rd dim qubits 
         self._coords[4:] = self._coords[:4] + self._o
 
-        self._axis_labels = ['#3', '#2', '#1'][::self._bitOrder]
-        
+        self._axis_labels = np.arange(1,self._sim._n+1)[::-self._bitOrder]
+
         self._fig = None
         self._ax = None
         self._val, self._phi = None, None
         self._lx, self._ly = None, None
+        self._showMagnPhase = False
          
         
-    def draw(self, show_values=False):
+    def showMagnPhase(self, show_values:bool):
+        print(show_values)
+        self._showMagnPhase = show_values
+
+    
+    def draw(self):
         """Draw Dimensional Circle Notation representation of current simulator state.
         """
-        self._showMagnPhase = show_values
+        self._lastState = self._sim
         self._fig = plt.figure(layout='compressed')
         self._ax = self._fig.gca()
         self._ax.set_axis_off()
@@ -234,6 +246,27 @@ class DimensionalCircleNotation(Visualization, ):
         self._val = np.abs(self._sim._register)
         self._phi = -np.angle(self._sim._register, deg=False).flatten()
         self._lx, self._ly = np.sin(self._phi), np.cos(self._phi)
+
+        # limits for coordinate axis [[[xmin, xmax] [ymin, ymax]], [...]]
+        limits = np.array(  [[[-1.2, 6.2], [3.5, 7.5]],    # 1 Qubit
+                            [[-4, 6.2], [-2,8]],          # 2 Qubits
+                            [[-5, 8.7],[-2, 10.35]]])      # 3 Qubits
+        
+        # Scale textsizes such that ratio circles to textsize constant
+        # automatic relative to length of y axis
+        # ylen = limits[:,1,1] - limits[:,1,0]
+        # scale = ylen[2] / ylen
+        
+        # hard coded 
+        scale = [2, 1.25, 1]
+        
+        factor = scale[self._sim._n-1]
+        print(f"{self._sim._n} qubit - Scaling text by {factor:2.2f}")
+        for k in self._textsize.keys():
+            self._textsize[k] *= factor
+            
+        self._ax.set_xlim(limits[self._sim._n-1, 0])
+        self._ax.set_ylim(limits[self._sim._n-1, 1])
 
         bits = 2**self._sim._n
         if bits > 4:
@@ -253,22 +286,13 @@ class DimensionalCircleNotation(Visualization, ):
         self._drawCircle(1)
         self._drawCircle(0)
 
-        # coordinate axis
         if self._sim._n == 1:
             self._drawArrows(-1, self._c + 2)  
-            # self._ax.set_xlim([-1.2, 6.2])
-            # self._ax.set_ylim([3.5, 7.5])
         elif self._sim._n == 2:
             self._drawArrows(-2.5, self._c + 2.5)  
-            # self._ax.set_xlim([-4, 6.2])
-            # self._ax.set_ylim([-2,8])
         elif self._sim._n == 3:
             self._drawArrows(-self._c+self._o*2/3, self._c + 2.5)  
-            # self._ax.set_xlim([-5, 8.7])
-            # self._ax.set_ylim([-2, 10.35])
-            
-        self._ax.set_xlim([-5, 8.7])
-        self._ax.set_ylim([-2, 10.35])
+
 
     def _drawArrows(self, x0, y0):
         """Helper method to draw arrows for coordinate axis at given position.
@@ -280,12 +304,12 @@ class DimensionalCircleNotation(Visualization, ):
         alen = self._c*2/3 
         if self._sim._n > 2:
             di = alen / np.sqrt(2)
-            self._ax.text(x0+di/2.15, y0+di/2+.15, f'Qubit {self._axis_labels[2]}', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
+            self._ax.text(x0+di/2.15, y0+di/2+.15, f'Qubit #{self._axis_labels[2]:1d}', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
             self._ax.arrow(x0, y0, di, di, **self._arrowStyle)
         if self._sim._n > 1:
-            self._ax.text(x0-.3, y0-alen/2, f'Qubit {self._axis_labels[1]}', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
+            self._ax.text(x0-.3, y0-alen/2, f'Qubit #{self._axis_labels[1]:1d}', size=self._textsize['axislbl'], horizontalalignment='right', verticalalignment='center')
             self._ax.arrow(x0, y0, 0, -alen, **self._arrowStyle)
-        self._ax.text(x0+alen/2+.2, y0+.3, f'Qubit {self._axis_labels[0]}', size=self._textsize['axislbl'], horizontalalignment='center', verticalalignment='center')    
+        self._ax.text(x0+alen/2+.2, y0+.3, f'Qubit #{self._axis_labels[0]:1d}', size=self._textsize['axislbl'], horizontalalignment='center', verticalalignment='center')    
         self._ax.arrow(x0, y0, alen, 0, **self._arrowStyle)
 
 
@@ -335,7 +359,7 @@ class DimensionalCircleNotation(Visualization, ):
         label = np.binary_repr(index, width=self._sim._n) # width is deprecated since numpy 1.12.0
         # print(index, label)
         off = 1.3
-        off_magn_phase = .35
+        off_magn_phase = .4
 
         if self._sim._n == 3:
             place = -1 if int(label[1]) else 1

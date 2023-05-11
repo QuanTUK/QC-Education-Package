@@ -81,11 +81,12 @@ class Simulator():
         Returns:
             bool: True if given registers of simulators equal, else False
         """  
-        if o._bitOrder == self._bitOrder:
-            if isinstance(o, Simulator):
-                return np.array_equal(self._register, o._register)
-        else:
-            print("Can't compare due to different (qu)bitorder.")
+        if o is not None:
+            if o._bitOrder == self._bitOrder:
+                if isinstance(o, Simulator):
+                    return np.array_equal(self._register, o._register)
+            else:
+                print("Can't compare due to different (qu)bitorder.")
         return False 
 
 
@@ -284,7 +285,7 @@ class Simulator():
         elif type(qubit) == list:
             msg = ""
             for qb in qubit:
-                msg += f"{self.read(qb)}'\n'"
+                msg += f"{self.read(qb)}\n"
 
 
         else:
