@@ -370,4 +370,4 @@ class DimensionalCircleNotation(Visualization, ):
 
         self._ax.text(xpos, ypos + place*off, fr'$|{label:s}\rangle$', size=self._textsize['register'], horizontalalignment='center', verticalalignment='center')
         if self._showMagnPhase: 
-            self._ax.text(xpos, ypos + place*(off+off_magn_phase), f'{self._val[index]:+2.3f} | {np.rad2deg(self._phi[index]):+2.0f}°', size=self._textsize['magphase'], horizontalalignment='center', verticalalignment='center')
+            self._ax.text(xpos, ypos + place*(off+off_magn_phase), fr'{self._val[index]:+2.3f} | {np.rad2deg(self._phi[index]):+2.0f}°', size=self._textsize['magphase'], horizontalalignment='center', verticalalignment='center')
