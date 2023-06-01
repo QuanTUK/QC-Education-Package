@@ -105,7 +105,7 @@ class Visualization:
     def show(self):
         """Method to show current figure using plt.show but making sure the visualization is always redrawn.
         """ 
-        self._redraw()
+        self.draw()
         plt.show()
 
 

@@ -146,21 +146,17 @@ class Simulator():
 
    
     def write_integer(self, val, qubit=1):  
-        """Write given integer value in binary starting a position qubit. If no qubit parameter is passed, start
-        with first qubit. Attention! This will override the register. Use this only to prepare your qubit/register.
+        """Write given integer value in binary. Attention! This will overwrite the register. Use this only to prepare your qubit/register.
 
         Args:
             val (integer): State is build to (1-p)|0> + p|1>. Hence p=0 -> |0>; p=1 -> |1>
             qubit (int or list(int), optional): qubit to be set. Defaults to 1.
         """
         # Check if val can be represented by n_Q_bit qubit
-        assert(val < 2**(self._n-qubit+1))
-        i = qubit
         Q_bits = []
         bval = np.array(list(np.binary_repr(val).zfill(self._n)), dtype=np.int8) 
         for d in bval:
             Q_bits.append(self._one if d else self._zero)
-            i += 1
         self._register = self._nKron(Q_bits).flatten()
 
 
@@ -245,7 +241,7 @@ class Simulator():
                 # project all qubit with given projector, POVM Measurement
                 self._operatorInBase(proj)
             prop = np.square(np.abs(self._register)).flatten()
-            result = np.random.choice(a=2**self._n, p=prop)  # choice uses np.arange 0 to a, hence +1
+            result = np.random.choice(a=2**self._n, p=prop) 
             self.write_integer(result)
             out = np.binary_repr(result).zfill(self._n)
             msg = f"Measured state |{out}>."
@@ -685,6 +681,8 @@ class Simulator():
         for i in ops_to_kron[::self._bitOrder]:               
             result = np.kron(i, result)     
         return result
+        # Can be shorter using functools.reduce() 
+        # See https://docs.python.org/3/library/functools.html#functools.reduce
 
 
     def _operatorInBase(self, operator, qubit=None) -> np.array:
