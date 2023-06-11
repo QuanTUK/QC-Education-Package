@@ -294,9 +294,11 @@ class Simulator():
     #Set global Phase 0
     def setGlobalPhase0(self):
         phase0 = np.angle(self._register[0])
-        self._register[0] = np.abs(self._register[0])
-        print(f'Phase |000>: {phase0} rad, {np.rad2deg(phase0)} deg')
-        return self._operatorInBase(self._P(-phase0)) # NOTE: Das dreht die |1> Zustände
+        self._register *= np.exp(-1j*phase0)
+
+        # self._register[0] = np.abs(self._register[0])
+        # print(f'Phase |000>: {phase0} rad, {np.rad2deg(phase0)} deg')
+        # return self._operatorInBase(self._P(-phase0))
 
 
     # Methods to generate single qubit operators
@@ -734,10 +736,8 @@ class Simulator():
         control1 = np.array([np.identity(2)] * self._n, dtype=complex)
         control1[control_qubit] = np.array([[0,0],[0,1]])  # |1><1| check if |1>
 
-        # |0><0| check if |0>, apply I if so 
-        # For more than one control need to check |0>_i XOR |0>_j  i xor j <=> not(i and j)
-        I = self._operatorInBase(self._I)  # I for 2*n
-        control0 = self._Ib - self._nKron(control1)
+        # TODO: Add Doc here
+        control0 = self._Ib - self._nKron(control1)  
 
         # Add target operator
         control1[target_Q_bit] = operator #  apply U if |1><1|
