@@ -370,14 +370,14 @@ class DimensionalCircleNotation(Visualization, ):
         bg = mpatches.Circle((xpos, ypos), radius=1, color=self._params['color_bg'], edgecolor=None)
         self._ax.add_artist(bg)
         # Fill area of unit circle
-        if self._val[index] > 0:
+        if self._val[index] >= 1e-3:
             fill = mpatches.Circle((xpos, ypos), radius=self._val[index], color=self._params['color_fill'], edgecolor=None)
             self._ax.add_artist(fill)
         # Black margin for circles
         ring = mpatches.Circle((xpos, ypos), radius=1, fill=False, edgecolor=self._params['color_edge'], linewidth=self._params['width_edge'])
         self._ax.add_artist(ring)
         # Indicator for phase
-        if self._val[index] > 0:
+        if self._val[index] >= 1e-3:
             phase = mlines.Line2D([xpos, xpos+self._lx[index]], [ypos, ypos+self._ly[index]], color=self._params['color_phase'], linewidth=self._params['width_phase'])
             self._ax.add_artist(phase)
         # Add label to circle
