@@ -714,7 +714,7 @@ class Simulator():
         return op
 
 
-    def _controlledU(self, operator, control_qubit, target_Q_bit) -> np.array:
+    def _controlledU(self, operator, control_qubit, target_qubit) -> np.array:
         """Returns controlled version of given operator gate
 
         Args:
@@ -726,13 +726,14 @@ class Simulator():
             np.array: Matrix for controlled operator in comp. basis.
         """
         # bitorder
-        
+        print(control_qubit, target_qubit, self._n)
         control_qubit = np.array(control_qubit, dtype=int)
         control_qubit = self._n-control_qubit if self._bitOrder else control_qubit-1  # for correct bitorder little/big endian
-        target_Q_bit = self._n-target_Q_bit if self._bitOrder else target_Q_bit-1  # for correct bitorder little/big endian
-        assert(np.all(control_qubit > 0) and np.all(control_qubit <= self._n))
-        assert(target_Q_bit > 0 and target_Q_bit <= self._n)
-        assert(np.all(target_Q_bit != control_qubit))
+        target_qubit = self._n-target_qubit if self._bitOrder else target_qubit-1  # for correct bitorder little/big endian
+        print(control_qubit, target_qubit, self._n)
+        assert(target_qubit >= 0 and target_qubit < self._n)
+        assert(np.all(control_qubit >= 0) and np.all(control_qubit < self._n))
+        assert(np.all(target_qubit != control_qubit))
         
         control1 = np.array([np.identity(2)] * self._n, dtype=complex)
         control1[control_qubit] = np.array([[0,0],[0,1]])  # |1><1| check if |1>
@@ -741,7 +742,7 @@ class Simulator():
         control0 = self._Ib - self._nKron(control1)  
 
         # Add target operator
-        control1[target_Q_bit] = operator #  apply U if |1><1|
+        control1[target_qubit] = operator #  apply U if |1><1|
         control1 = self._nKron(control1)  
         
         op = control0 + control1
