@@ -726,11 +726,12 @@ class Simulator():
             np.array: Matrix for controlled operator in comp. basis.
         """
         # bitorder
-        assert(control_qubit > 0 and control_qubit <= self._n)
-        assert(target_Q_bit > 0 and target_Q_bit <= self._n)
+        
         control_qubit = np.array(control_qubit, dtype=int)
         control_qubit = self._n-control_qubit if self._bitOrder else control_qubit-1  # for correct bitorder little/big endian
         target_Q_bit = self._n-target_Q_bit if self._bitOrder else target_Q_bit-1  # for correct bitorder little/big endian
+        assert(np.all(control_qubit > 0) and np.all(control_qubit <= self._n))
+        assert(target_Q_bit > 0 and target_Q_bit <= self._n)
         assert(np.all(target_Q_bit != control_qubit))
         
         control1 = np.array([np.identity(2)] * self._n, dtype=complex)
