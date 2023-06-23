@@ -181,6 +181,16 @@ class CircleNotation(Visualization):
         ax.set_axis_off()
         ax.set_aspect('equal')
 
+        # Scale textsizes such that ratio circles to textsize constant
+        # automatic relative to length of y axis
+        scale = [2, 1.25, .8]
+        
+        factor = scale[self._sim._n-1]
+        print(f"{self._sim._n} qubit - Scaling text by {factor:2.2f}")
+        for k in ['textsize_register', 'textsize_magphase']:
+            self._params[k] *= factor
+        
+
         for i in range(2**self._sim._n):
             fill = mpatches.Circle((xpos, ypos), radius=val[i], color=self._params['color_fill'], edgecolor=None)
             ring = mpatches.Circle((xpos, ypos), radius=1, fill=False, edgecolor=self._params['color_edge'], linewidth=self._params['width_edge'])
@@ -189,7 +199,7 @@ class CircleNotation(Visualization):
             ax.add_artist(ring)
             ax.add_artist(phase)
             label = np.binary_repr(i, width=self._sim._n) # width is deprecated since numpy 1.12.0
-            ax.text(xpos, ypos + self._params['offset_registerLabel'], fr'$|{label:s}\rangle$', horizontalalignment='center', verticalalignment='center')
+            ax.text(xpos, ypos + self._params['offset_registerLabel'], fr'$|{label:s}\rangle$', size=self._params['textsize_register'], horizontalalignment='center', verticalalignment='center')
             # NOTE text vs TextPath: text can easily be centered, textpath size is fixed when zooming
             # tp = TextPath((xpos-0.2*len(label), ypos - 1.35), f'|{label:s}>', size=0.4)
             # ax.add_patch(PathPatch(tp, color="black"))
