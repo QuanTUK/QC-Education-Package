@@ -522,44 +522,44 @@ class Simulator():
 
 
     # controlled gates
-    def cHad(self, control_qubit, not_Q_bit) -> np.array:
+    def cHad(self, control_qubit, target_qubit) -> np.array:
         """Applies the controlled Hadamard gate with given control qubit(s) and target qubit.
 
         Args:
             control_qubit (int or list(int)): qubit(s) which is controlling.
-            not_Q_bit (int): qubit on which Hadamard gate shall be applied.
+            target_qubit (int): qubit on which Hadamard gate shall be applied.
 
         Returns:
             np.array: controlled Hadamard gate for given parameters in comp. basis.
         """
-        return self._controlledU(self._H, control_qubit, not_Q_bit)
+        return self._controlledU(self._H, control_qubit, target_qubit)
 
 
-    def cNot(self, control_qubit, not_Q_bit) -> np.array:
+    def cNot(self, control_qubit, target_qubit) -> np.array:
         """Applies the CNOT gate with given control qubit(s) and target qubit.
 
         Args:
             control_qubit (int or list(int)): controlling qubit(s).
-            not_Q_bit (int): qubit on which Not gate shall be applied.
+            target_qubit (int): qubit on which Not gate shall be applied.
 
         Returns:
             np.array: CNOT gate for given parameters in comp. basis.
         """
-        return self._controlledU(self._X, control_qubit, not_Q_bit)
+        return self._controlledU(self._X, control_qubit, target_qubit)
 
 
-    def ccNot(self, control_qubit1, control_qubit2, not_Q_bit) -> np.array:
+    def ccNot(self, control_qubit1, control_qubit2, target_qubit) -> np.array:
         """Applies the CCNOT gate with given control qubit(s) and target qubit.
 
         Args:
             control_qubit1 (int): controlling qubit.
             control_qubit2 (int): controlling qubit.
-            not_Q_bit (int): qubit on which Not gate shall be applied.
+            target_qubit (int): qubit on which Not gate shall be applied.
 
         Returns:
             np.array: CCNOT gate for given parameters in comp. basis.
         """
-        return self._controlledU(self._X, [control_qubit1, control_qubit2], not_Q_bit)
+        return self._controlledU(self._X, [control_qubit1, control_qubit2], target_qubit)
 
 
     def cPhase(self, angle, control_qubit, target_Q_bit) -> np.array:
@@ -618,17 +618,17 @@ class Simulator():
         return self._controlledU(self._Rz(np.deg2rad(angle)), control_qubit, target_Q_bit)
     
 
-    def cZ(self, control_qubit, not_Q_bit) -> np.array:
+    def cZ(self, control_qubit, target_qubit) -> np.array:
         """Applies the CZ gate with given control qubit(s) and target qubit.
 
         Args:
             control_qubit (int or list(int)): controlling qubit(s).
-            not_Q_bit (int): qubit on which Z gate shall be applied.
+            target_qubit (int): qubit on which Z gate shall be applied.
 
         Returns:
             np.array: CZ gate for given parameters in comp. basis.
         """
-        return self._controlledU(self._Z, control_qubit, not_Q_bit)
+        return self._controlledU(self._Z, control_qubit, target_qubit)
 
 
     def cSwap(self, control_qubit, i, j) -> np.array:
@@ -731,9 +731,9 @@ class Simulator():
         control_qubit = self._n-control_qubit if self._bitOrder else control_qubit-1  # for correct bitorder little/big endian
         target_qubit = self._n-target_qubit if self._bitOrder else target_qubit-1  # for correct bitorder little/big endian
         print(control_qubit, target_qubit, self._n)
-        assert(target_qubit >= 0 and target_qubit < self._n)
-        assert(np.all(control_qubit >= 0) and np.all(control_qubit < self._n))
-        assert(np.all(target_qubit != control_qubit))
+        # assert(target_qubit >= 0 and target_qubit < self._n)
+        # assert(np.all(control_qubit >= 0) and np.all(control_qubit < self._n))
+        # assert(np.all(target_qubit != control_qubit))
         
         control1 = np.array([np.identity(2)] * self._n, dtype=complex)
         control1[control_qubit] = np.array([[0,0],[0,1]])  # |1><1| check if |1>
