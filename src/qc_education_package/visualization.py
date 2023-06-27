@@ -192,9 +192,10 @@ class CircleNotation(Visualization):
         
 
         for i in range(2**self._sim._n):
-            fill = mpatches.Circle((xpos, ypos), radius=val[i], color=self._params['color_fill'], edgecolor=None)
             ring = mpatches.Circle((xpos, ypos), radius=1, fill=False, edgecolor=self._params['color_edge'], linewidth=self._params['width_edge'])
-            phase = mlines.Line2D([xpos, xpos+lx[i]], [ypos, ypos+ly[i]], color=self._params['color_phase'], linewidth=self._params['width_phase'])
+            if val[i] > 1e-3:
+                fill = mpatches.Circle((xpos, ypos), radius=val[i], color=self._params['color_fill'], edgecolor=None)
+                phase = mlines.Line2D([xpos, xpos+lx[i]], [ypos, ypos+ly[i]], color=self._params['color_phase'], linewidth=self._params['width_phase'])
             ax.add_artist(fill)
             ax.add_artist(ring)
             ax.add_artist(phase)
