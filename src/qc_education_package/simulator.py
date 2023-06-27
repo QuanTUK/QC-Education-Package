@@ -748,3 +748,5 @@ class Simulator():
         op = control0 + control1
         self._register = op @ self._register
         return op
+
+# TODO: printnice methoud to output matrices. Threshold value such that noise gets zeroed out eg val < 1e15 -> 0
