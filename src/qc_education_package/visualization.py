@@ -147,7 +147,7 @@ class CircleNotation(Visualization):
         super().__init__(simulator)  # Execute constructor of superclass
         
         self._params.update({'color_edge': 'black', 'color_fill': '#77b6ba', 'color_phase': 'black',
-        'width_edge': 1, 'width_phase': 1,
+        'width_edge': .7, 'width_phase': .7,
         'textsize_register': 10, 'textsize_magphase':8, 'dist_circles': 3,
         'offset_registerLabel': -1.35, 'offset_registerValues': -2.3})
         
@@ -192,13 +192,13 @@ class CircleNotation(Visualization):
         
 
         for i in range(2**self._sim._n):
-            ring = mpatches.Circle((xpos, ypos), radius=1, fill=False, edgecolor=self._params['color_edge'], linewidth=self._params['width_edge'])
-            ax.add_artist(ring)
             if val[i] > 1e-3:
                 fill = mpatches.Circle((xpos, ypos), radius=val[i], color=self._params['color_fill'], edgecolor=None)
                 phase = mlines.Line2D([xpos, xpos+lx[i]], [ypos, ypos+ly[i]], color=self._params['color_phase'], linewidth=self._params['width_phase'])
                 ax.add_artist(fill)
                 ax.add_artist(phase)
+            ring = mpatches.Circle((xpos, ypos), radius=1, fill=False, edgecolor=self._params['color_edge'], linewidth=self._params['width_edge'])
+            ax.add_artist(ring)
             label = np.binary_repr(i, width=self._sim._n) # width is deprecated since numpy 1.12.0
             ax.text(xpos, ypos + self._params['offset_registerLabel'], fr'$|{label:s}\rangle$', size=self._params['textsize_register'], horizontalalignment='center', verticalalignment='center')
             # NOTE text vs TextPath: text can easily be centered, textpath size is fixed when zooming
