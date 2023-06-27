@@ -193,12 +193,12 @@ class CircleNotation(Visualization):
 
         for i in range(2**self._sim._n):
             ring = mpatches.Circle((xpos, ypos), radius=1, fill=False, edgecolor=self._params['color_edge'], linewidth=self._params['width_edge'])
+            ax.add_artist(ring)
             if val[i] > 1e-3:
                 fill = mpatches.Circle((xpos, ypos), radius=val[i], color=self._params['color_fill'], edgecolor=None)
                 phase = mlines.Line2D([xpos, xpos+lx[i]], [ypos, ypos+ly[i]], color=self._params['color_phase'], linewidth=self._params['width_phase'])
-            ax.add_artist(fill)
-            ax.add_artist(ring)
-            ax.add_artist(phase)
+                ax.add_artist(fill)
+                ax.add_artist(phase)
             label = np.binary_repr(i, width=self._sim._n) # width is deprecated since numpy 1.12.0
             ax.text(xpos, ypos + self._params['offset_registerLabel'], fr'$|{label:s}\rangle$', size=self._params['textsize_register'], horizontalalignment='center', verticalalignment='center')
             # NOTE text vs TextPath: text can easily be centered, textpath size is fixed when zooming
