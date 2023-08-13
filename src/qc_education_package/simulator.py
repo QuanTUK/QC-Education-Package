@@ -41,6 +41,7 @@ class Simulator():
         
         # Setup methods
         if type(arg) == int:
+            self._n = arg
             self.reset(arg)
         elif type(arg) == str:
             if self.restoreFromFile(arg):
@@ -227,6 +228,7 @@ class Simulator():
             val (float or list): State is build to (1-p)|0> + p|1>. Hence p=0 -> |0>; p=1 -> |1>
             qubit (int or list, optional): qubit(s) to be set. Defaults to None.
         """
+        print(val, self._n)
         self.writeInteger(val, qubit)
 
 
