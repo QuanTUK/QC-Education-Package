@@ -39,7 +39,7 @@ class Visualization:
 
       
 
-    def export_png(self, fname:str, title=''):
+    def exportPNG(self, fname:str, title=''):
         """Export the current visualization as PNG image to given path.
 
         Args:
@@ -48,7 +48,7 @@ class Visualization:
         self._export(fname, 'png', title)
 
 
-    def export_pdf(self, fname:str, title=''):
+    def exportPDF(self, fname:str, title=''):
         """Export the current visualization as PDF file to given path.
 
         Args:
@@ -57,7 +57,7 @@ class Visualization:
         self._export(fname, 'pdf', title)
     
 
-    def export_svg(self, fname:str, title=''):
+    def exportSVG(self, fname:str, title=''):
         """Export the current visualization as SVG image to given path.
 
         Args:
@@ -67,7 +67,7 @@ class Visualization:
         self._export(fname, 'svg', title)
 
 
-    def export_base64(self, formatStr='png', title=''):
+    def exportBase64(self, formatStr='png', title=''):
         """Export given format as base64 string. Mostly to handover images for flask website.
 
         Args:
@@ -76,10 +76,9 @@ class Visualization:
         Returns:
             str: base64 string representation of the generated image.
         """
-        return b64encode(self._export_buffer(formatStr. title)).decode("ascii")
+        return b64encode(self._exportBuffer(formatStr, title)).decode('ascii') 
 
-
-    def _export_buffer(self, formatStr, title=''):
+    def _exportBuffer(self, formatStr, title=''):
         """Export current visualization in format into IO buffer. 
 
         Args:
@@ -194,8 +193,9 @@ class CircleNotation(Visualization):
         xpos = self._c/2
         ypos = y_max - self._c/2
 
-        self.fig = plt.figure(layout='compressed', dpi=300)
-        plt.get_current_fig_manager().set_window_title("Circle Notation")
+        self.fig = plt.figure(layout='compressed', dpi=self._params['dpi'])
+        return
+        # plt.get_current_fig_manager().set_window_title("Circle Notation")
         ax = self.fig.gca()
        
         val = np.abs(self._sim._register)
@@ -302,7 +302,7 @@ class DimensionalCircleNotation(Visualization, ):
         """Draw Dimensional Circle Notation representation of current simulator state.
         """
         self.fig = plt.figure(layout='compressed')
-        plt.get_current_fig_manager().set_window_title("Dimensional Circle Notation")
+        # plt.get_current_fig_manager().set_window_title("Dimensional Circle Notation")
         self._ax = self.fig.gca()
         self._ax.set_axis_off()
         self._ax.set_aspect('equal')
