@@ -15,6 +15,8 @@ from io import BytesIO
 from base64 import b64encode
 import numpy as np
 
+# TODO: Skalieren der Bilder (Text und Linienbreite) in den Griff bekommen. -> fixed figsize?
+
 
 class Visualization:
     """Superclass for all visualizations of quantum computer states. 
@@ -28,7 +30,7 @@ class Visualization:
             simulator (qc_simulator.simulator): Simulator object to be visualized.
         """
         self._sim = simulator
-        self._fig = None
+        self.fig = None
         self._lastState = None
         mpl.rcParams['text.usetex'] = False
         mpl.rcParams['text.parse_math'] = parse_math
@@ -37,35 +39,35 @@ class Visualization:
 
       
 
-    def export_png(self, fname:str):
+    def export_png(self, fname:str, title=''):
         """Export the current visualization as PNG image to given path.
 
         Args:
             fname (str): fname or path to export image to.
         """
-        self._export(fname, 'png')
+        self._export(fname, 'png', title)
 
 
-    def export_pdf(self, fname:str):
+    def export_pdf(self, fname:str, title=''):
         """Export the current visualization as PDF file to given path.
 
         Args:
             fname (str): fname or path to export file to.
         """
-        self._export(fname, 'pdf')
+        self._export(fname, 'pdf', title)
     
 
-    def export_svg(self, fname:str):
+    def export_svg(self, fname:str, title=''):
         """Export the current visualization as SVG image to given path.
 
         Args:
             fname (str): fname or path to export image to.
         """
-        mpl.rcParams['svg.fonttype'] = 'none'
-        self._export(fname, 'svg')
+        mpl.rcParams['svg.fonttype'] = 'none'  # Export as text and not paths
+        self._export(fname, 'svg', title)
 
 
-    def export_base64(self, formatStr='png'):
+    def export_base64(self, formatStr='png', title=''):
         """Export given format as base64 string. Mostly to handover images for flask website.
 
         Args:
@@ -74,10 +76,10 @@ class Visualization:
         Returns:
             str: base64 string representation of the generated image.
         """
-        return b64encode(self._export_buffer(formatStr)).decode("ascii")
+        return b64encode(self._export_buffer(formatStr. title)).decode("ascii")
 
 
-    def _export_buffer(self, formatStr):
+    def _export_buffer(self, formatStr, title=''):
         """Export current visualization in format into IO buffer. 
 
         Args:
@@ -87,11 +89,11 @@ class Visualization:
             BytesIO: returns view of buffer containing image using BytesIO.getbuffer()
         """
         buf = BytesIO()
-        self._export(buf, formatStr)
+        self._export(buf, formatStr, title)
         return buf.getbuffer()
 
 
-    def _export(self, target, formatStr='png'):
+    def _export(self, target:str, formatStr:str, title:str):
         """General export method to save current pyplot figure, so all all exports will share same form factor, res etc.  
 
         Args:
@@ -99,21 +101,22 @@ class Visualization:
             formatStr (str, optional): Format for image. Defaults to 'png'.
         """
         self._redraw()
-        self._fig.savefig(target, format=formatStr, bbox_inches='tight', pad_inches=0, dpi=self._params['dpi'], transparent=self._params['transparent'])
+        self.fig.suptitle(title)
+        self.fig.savefig(target, format=formatStr, bbox_inches='tight', pad_inches=0, dpi=self._params['dpi'], transparent=self._params['transparent'])
 
 
     def show(self):
         """Method to show current figure using plt.show but making sure the visualization is always redrawn.
         """ 
         self._redraw()
-        print('Show')
-        plt.show() # NOTE: Can only show 1 plot in 1 session
+        plt.show()
 
 
     def _redraw(self):
         """Checks if simulator state is changed and redraws the image if so.
         """
         if self._lastState != self._sim:
+            self._lastState = self._sim.copy()
             self.draw()
 
 
@@ -129,6 +132,29 @@ class Visualization:
     def draw(self):
         # TODO: Add style guide for draw method
         pass
+
+
+    def hist(self, qubit=None, size=100) -> (np.array, mpl.figure, mpl.axes.Axes):
+        """Create a histogram plot for repeated measurements of the simulator state. Here the state of the simulator will not collaps after a measurement.
+        Arguments are passed to simulator.read(). If no qubit is given (qubit=None) all qubit are measured.
+
+        Args:
+            qubit (int or list(int), optional): qubit to read. Defaults to None.
+            size (int), optional): Repeat the measurement size times. Default 1 Measurement.
+
+        Returns:
+            (np.array, mpl.figure, mpl.axes.Axes): Measurement results and pyplot figure and axes of the histogram plot to further manipulate if needed
+        """
+        _, result = self._sim.read(qubit, size)
+        histFig = plt.figure(0)
+        plt.get_current_fig_manager().set_window_title("Histogram plot")
+        ax = histFig.subplots()
+        ax.hist(result, density=True)
+        ax.set_xlabel("Measured state")
+        ax.set_ylabel("N")
+        ax.set_title(f"Measured all qubits {size} times." if qubit is None else f"Measured qubit {qubit} {size} times.")
+        return result, histFig, ax
+
 
 
 
@@ -154,13 +180,12 @@ class CircleNotation(Visualization):
         for key, val in kwargs:
             self._params[key] = val
 
-        self._fig = None
+        self.fig = None
               
         
     def draw(self, cols=None):
         """Draw Circle Notation representation of current simulator state.
         """
-        self._lastState = self._sim
         self._cols = cols if cols != None else 2**self._sim._n
         bits = 2**self._sim._n
         self._c = self._params['dist_circles'] 
@@ -169,8 +194,9 @@ class CircleNotation(Visualization):
         xpos = self._c/2
         ypos = y_max - self._c/2
 
-        self._fig = plt.figure(layout='compressed', dpi=300)
-        ax = self._fig.gca()
+        self.fig = plt.figure(layout='compressed', dpi=300)
+        plt.get_current_fig_manager().set_window_title("Circle Notation")
+        ax = self.fig.gca()
        
         val = np.abs(self._sim._register)
         phi = -np.angle(self._sim._register, deg=False).flatten()
@@ -186,7 +212,7 @@ class CircleNotation(Visualization):
         scale = [2, 1.25, .8]
         
         factor = scale[self._sim._n-1]
-        print(f"{self._sim._n} qubit - Scaling text by {factor:2.2f}")
+        # print(f"{self._sim._n} qubit - Scaling text by {factor:2.2f}")
         for k in ['textsize_register', 'textsize_magphase']:
             self._params[k] *= factor
         
@@ -265,7 +291,7 @@ class DimensionalCircleNotation(Visualization, ):
 
         self._axis_labels = np.arange(1,self._sim._n+1)[::-self._params['bitOrder']]
 
-        self._fig = None
+        self.fig = None
         self._ax = None
         self._val, self._phi = None, None
         self._lx, self._ly = None, None
@@ -275,9 +301,9 @@ class DimensionalCircleNotation(Visualization, ):
     def draw(self):
         """Draw Dimensional Circle Notation representation of current simulator state.
         """
-        self._lastState = self._sim
-        self._fig = plt.figure(layout='compressed')
-        self._ax = self._fig.gca()
+        self.fig = plt.figure(layout='compressed')
+        plt.get_current_fig_manager().set_window_title("Dimensional Circle Notation")
+        self._ax = self.fig.gca()
         self._ax.set_axis_off()
         self._ax.set_aspect('equal')
 
@@ -296,7 +322,7 @@ class DimensionalCircleNotation(Visualization, ):
         scale = [2, 1.25, 1]
         
         factor = scale[self._sim._n-1]
-        print(f"{self._sim._n} qubit - Scaling text by {factor:2.2f}")
+        # print(f"{self._sim._n} qubit - Scaling text by {factor:2.2f}")
         for k in ['textsize_register', 'textsize_magphase', 'textsize_axislbl']:
             self._params[k] *= factor
             
