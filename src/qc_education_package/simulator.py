@@ -42,7 +42,8 @@ class Simulator():
         # Setup methods
         if type(arg) == int:
             self._n = arg
-            self.reset(arg)
+            self._Ib = np.identity(2**arg)  # Identity in comp. base
+            self.writeInteger(0)
         elif type(arg) == str:
             if self.restoreFromFile(arg):
                 print(f"Restored simulator state from state file {arg}.")

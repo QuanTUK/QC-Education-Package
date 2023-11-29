@@ -194,8 +194,7 @@ class CircleNotation(Visualization):
         ypos = y_max - self._c/2
 
         self.fig = plt.figure(layout='compressed', dpi=self._params['dpi'])
-        return
-        # plt.get_current_fig_manager().set_window_title("Circle Notation")
+        plt.get_current_fig_manager().set_window_title("Circle Notation")
         ax = self.fig.gca()
        
         val = np.abs(self._sim._register)
@@ -295,6 +294,7 @@ class DimensionalCircleNotation(Visualization, ):
         self._ax = None
         self._val, self._phi = None, None
         self._lx, self._ly = None, None
+        self._scaleAxis()
          
 
     
@@ -302,7 +302,7 @@ class DimensionalCircleNotation(Visualization, ):
         """Draw Dimensional Circle Notation representation of current simulator state.
         """
         self.fig = plt.figure(layout='compressed')
-        # plt.get_current_fig_manager().set_window_title("Dimensional Circle Notation")
+        plt.get_current_fig_manager().set_window_title("Dimensional Circle Notation")
         self._ax = self.fig.gca()
         self._ax.set_axis_off()
         self._ax.set_aspect('equal')
@@ -311,21 +311,6 @@ class DimensionalCircleNotation(Visualization, ):
         self._phi = -np.angle(self._sim._register, deg=False).flatten()
         self._lx, self._ly = np.sin(self._phi), np.cos(self._phi)
 
-        # NOTE: Need to update witdth circle dist 
-        # limits for coordinate axis [[[xmin, xmax] [ymin, ymax]], [...]]
-        self._limits = np.array(  [[[-1.1, 4.6], [1.8, 6]],    # 1 Qubit
-                            [[-4, 4.6], [-1.5, 6.5]],          # 2 Qubits
-                            [[-4, 6.35],[-1, 8.35]]])      # 3 Qubits
-        
-        # Scale textsizes such that ratio circles to textsize constant
-        # automatic relative to length of y axis
-        scale = [2, 1.25, 1]
-        
-        factor = scale[self._sim._n-1]
-        # print(f"{self._sim._n} qubit - Scaling text by {factor:2.2f}")
-        for k in ['textsize_register', 'textsize_magphase', 'textsize_axislbl']:
-            self._params[k] *= factor
-            
         self._ax.set_xlim(self._limits[self._sim._n-1, 0])
         self._ax.set_ylim(self._limits[self._sim._n-1, 1])
 
@@ -433,3 +418,21 @@ class DimensionalCircleNotation(Visualization, ):
         self._ax.text(xpos, ypos + place*self._params['offset_registerLabel'], fr'$|{label:s}\rangle$', size=self._params['textsize_register'], horizontalalignment='center', verticalalignment='center')
         if self._params['showValues']:
             self._ax.text(xpos, ypos + place*(self._params['offset_registerLabel']+self._params['offset_registerValues']), f'{self._val[index]:+2.3f}\n{np.rad2deg(self._phi[index]):+2.0f}°', size=self._params['textsize_magphase'], horizontalalignment='center', verticalalignment='center')
+
+    def _scaleAxis(self):
+         # NOTE: Need to update witdth circle dist 
+        # limits for coordinate axis [[[xmin, xmax] [ymin, ymax]], [...]]
+        self._limits = np.array(  [[[-1.1, 4.6], [1.8, 6]],    # 1 Qubit
+                            [[-4, 4.6], [-1.5, 6.5]],          # 2 Qubits
+                            [[-4, 6.35],[-1, 8.35]]])      # 3 Qubits
+        
+        # Scale textsizes such that ratio circles to textsize constant
+        # automatic relative to length of y axis
+        scale = [2, 1.25, 1]
+        
+        factor = scale[self._sim._n-1]
+        # print(f"{self._sim._n} qubit - Scaling text by {factor:2.2f}")
+        for k in ['textsize_register', 'textsize_magphase', 'textsize_axislbl']:
+            self._params[k] *= factor
+            
+        
