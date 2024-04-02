@@ -126,7 +126,7 @@ class Visualization:
         Args:
             show_values (bool): Show value fir true, else do not show
         """
-        self._params['showValues'] = show_values
+        self._params.update({'showValues': show_values})
 
 
     def draw(self):
