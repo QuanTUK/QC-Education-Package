@@ -78,6 +78,7 @@ class Visualization:
         """
         return b64encode(self._exportBuffer(formatStr, title)).decode('ascii') 
 
+
     def _exportBuffer(self, formatStr, title=''):
         """Export current visualization in format into IO buffer. 
 
@@ -133,7 +134,7 @@ class Visualization:
         pass
 
 
-    def hist(self, qubit=None, size=100) -> (np.array, mpl.figure, mpl.axes.Axes):
+    def hist(self, qubit=None, size=100) -> tuple[np.array, mpl.figure, mpl.axes.Axes]:
         """Create a histogram plot for repeated measurements of the simulator state. Here the state of the simulator will not collaps after a measurement.
         Arguments are passed to simulator.read(). If no qubit is given (qubit=None) all qubit are measured.
 
@@ -250,7 +251,6 @@ class DimensionalCircleNotation(Visualization, ):
 
         Args:
             simulator (qc_simulator.simulator): Simulator object to be visualized.
-            show_values (bool): Show magnitude and phase for each state, defaults to False.
         """
         super().__init__(simulator)  # Execute constructor of superclass
         assert(simulator._n <= 3)  # DCN is made for up to 3 qubits
@@ -288,7 +288,6 @@ class DimensionalCircleNotation(Visualization, ):
         # offset 3rd dim qubits 
         self._coords[4:] = self._coords[:4] + self._o
 
-        self._axis_labels = np.arange(1,self._sim._n+1)[::-self._params['bitOrder']]
 
         self.fig = None
         self._ax = None
@@ -332,6 +331,7 @@ class DimensionalCircleNotation(Visualization, ):
         self._drawCircle(1)
         self._drawCircle(0)
 
+        self._axis_labels = np.arange(1,self._sim._n+1)[::self._params['bitOrder']]
         if self._sim._n == 1:
             self._drawArrows(-1, self._c + 2)  
         elif self._sim._n == 2:
