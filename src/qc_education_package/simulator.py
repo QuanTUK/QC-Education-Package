@@ -10,6 +10,10 @@ import json
 import copy
 import os
 
+# Todo!
+# Van neumann entanglement entropy
+# Entropy of entanglement
+
 class Simulator():
 
 
