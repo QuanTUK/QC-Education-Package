@@ -726,7 +726,6 @@ class Simulator():
         """
         c1 = [i]
         c2 = [j]
-        # NOTE: Das geht schöner
         if type(control_qubit)==list:                
             c1.extend(control_qubit)
             c2.extend(control_qubit)
