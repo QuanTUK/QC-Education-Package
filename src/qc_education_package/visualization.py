@@ -155,7 +155,8 @@ class Visualization:
         ax.set_title(f"Measured all qubits {size} times." if qubit is None else f"Measured qubit {qubit} {size} times.")
         return result, histFig, ax
 
-
+# TODO: Change DCN for general init, make draw methods for different versions, add version parameter to init of superclass, omit in CN
+# TODO: Add test cases !
 
 
 
@@ -244,11 +245,17 @@ class DimensionalCircleNotation(Visualization, ):
     """A Visualization subclass for the newly introduced Dimensional Circle Notation (DCN) representation.
     """
 
-    def __init__(self, simulator, **kwargs):
-        """Constructor for the Dimensional Circle Notation representation.
-        This representation can be used for up to 3 qubits.
+    def __init__(self, simulator, parse_math=True, version=1):
+        if version = 1:
+            return self.__init__dcnV1(simulator, parse_math=parse_math)
+        else:
+            return self.__init__dcnV2(simulator, parse_math=parse_math)
         
 
+    def __init__dcnV1(self, simulator, **kwargs):
+        """Constructor for the Dimensional Circle Notation  (Version 1, deprecated) representation.
+        This representation can be used for up to 3 qubits.
+        
         Args:
             simulator (qc_simulator.simulator): Simulator object to be visualized.
         """
@@ -257,6 +264,7 @@ class DimensionalCircleNotation(Visualization, ):
         # TODO: 4-5 Qubits 
 
         # Style of circles NOTE: Still not sure if I like this approach for settings and params
+        # TODO: change style of parameter handling
         self._params.update({'color_edge': 'black', 'color_bg': 'white', 'color_fill': '#77b6baff', 'color_phase': 'black', 'color_cube': '#8a8a8a',
         'width_edge': .7, 'width_phase': .7, 'width_cube': .5, 'width_textsize': 10, 'width_textwidth': .1,
         'textsize_register': 10, 'textsize_magphase':8, 'textsize_axislbl':10,
@@ -267,13 +275,13 @@ class DimensionalCircleNotation(Visualization, ):
         # Placement
         self._params['offset_3d'] = self._params['dist_circles'] / 2  # offset for 3rd dim qubits
 
+        # TODO: there is a better way to achieve this
         for key, val in kwargs:
             self._params[key] = val
 
         self._c = self._params['dist_circles']
         self._o = self._params['offset_3d']
         self._arrowStyle = {'width':self._params['width_arrow'], 'head_width':self._params['width_arrowhead'], 'head_length':self._params['length_arrow'], 'edgecolor':self._params['color_arrow_edge'], 'facecolor':self._params['color_arrow_face']}
-
 
         self._coords = np.array([   [0, 1],                 # |000>
                                     [1, 1],                 # |001>
@@ -295,6 +303,121 @@ class DimensionalCircleNotation(Visualization, ):
         self._lx, self._ly = None, None
         self._scaleAxis()
          
+    def __init__dcnV2(self, simulator, **kwargs):
+        """Constructor for the Dimensional Circle Notation (Version 2) representation.
+        This representation can be used for up to  qubits.
+        
+        Args:
+            simulator (qc_simulator.simulator): Simulator object to be visualized.
+        """
+        super().__init__(simulator)  # Execute constructor of superclass
+        # Setup pyplot figure
+        self.fig = plt.figure(layout='compressed')
+        plt.get_current_fig_manager().set_window_title("Dimensional Circle Notation")
+        self._ax = self.fig.gca()
+        self._ax.set_axis_off()
+        self._ax.set_aspect('equal')
+        # Get arrays with magnitude and phase of the register
+        self._val = np.abs(self._sim._register)
+        self._phi = -np.angle(self._sim._register, deg=False).flatten()
+        # Get x and y components of the phase for drawing phase dial inside circles
+        self._lx, self._ly = np.sin(self._phi), np.cos(self._phi)
+
+        self._ax.set_xlim(self._limits[self._sim._n-1, 0])
+        self._ax.set_ylim(self._limits[self._sim._n-1, 1])
+        
+        self._axis_labels = np.arange(1,self._sim._n+1)[::self._params['bitOrder']]
+        # Hard coded visualization for number of qubits
+        match simulator.n:
+            case 1:
+                # Draw cube wire frame, qubit 1
+                self._drawLine([0,1])
+                self._drawCircle(1)
+                self._drawCircle(0)
+                # Draw arrows of coordinate axis 
+                self._drawArrows(-1, self._c + 2)  
+            case 2:
+                # Draw cube wire frame
+                # Qubit 2
+                self._drawLine([0,2,3,1])
+                self._drawCircle(3)
+                self._drawCircle(2)
+                # Qubit 1
+                self._drawLine([0,1])
+                self._drawCircle(1)
+                self._drawCircle(0)
+                # Draw arrows of coordinate axis 
+                self._drawArrows(-1, self._c + 2)  
+                self._drawArrows(-2.5, self._c + 2.5)  
+            
+            case 3:
+                # Draw cube wire frame
+                # Qubit 3
+                self._drawLine([0,4,5])
+                self._drawLine([1,5,7,3])
+                self._drawDottedLine([2,6,7])
+                self._drawDottedLine([4,6])
+                self._drawCircle(7)
+                self._drawCircle(6)
+                self._drawCircle(5)
+                self._drawCircle(4)
+                # Qubit 2
+                self._drawLine([0,2,3,1])
+                self._drawCircle(3)
+                self._drawCircle(2)
+                # Qubit 1
+                self._drawLine([0,1])
+                self._drawCircle(1)
+                self._drawCircle(0)
+                # Draw arrows of coordinate axis 
+                self._drawArrows(-1, self._c + 2)  
+                self._drawArrows(-2.5, self._c + 2.5)  
+                self._drawArrows(-self._c+self._o*2/3, self._c + 2.5) 
+            
+            case _:
+                raise NotImplementedError("DCN V2 is not implemented for this number of qubits.") 
+        
+
+        # Style of circles NOTE: Still not sure if I like this approach for settings and params
+        # TODO: move params of CN and DCN to superclass. Generalize
+        self._params.update({'color_edge': 'black', 'color_bg': 'white', 'color_fill': '#77b6baff', 'color_phase': 'black', 'color_cube': '#8a8a8a',
+        'width_edge': .7, 'width_phase': .7, 'width_cube': .5, 'width_textsize': 10, 'width_textwidth': .1,
+        'textsize_register': 10, 'textsize_magphase':8, 'textsize_axislbl':10,
+        'width_arrow':.03, 'width_arrowhead':.3, 'length_arrow':.5, 'color_arrow_edge':None, 'color_arrow_face':'black',
+        'dist_circles': 3.5, 
+        'offset_3d': 1, 'offset_registerLabel': 1.3, 'offset_registerValues': .6})
+
+        # Placement
+        self._params['offset_3d'] = self._params['dist_circles'] / 2  # offset for 3rd dim qubits
+
+        # TODO: there is a better way to achieve this
+        for key, val in kwargs:
+            self._params[key] = val
+
+        self._c = self._params['dist_circles']
+        self._o = self._params['offset_3d']
+        self._arrowStyle = {'width':self._params['width_arrow'], 'head_width':self._params['width_arrowhead'], 'head_length':self._params['length_arrow'], 'edgecolor':self._params['color_arrow_edge'], 'facecolor':self._params['color_arrow_face']}
+
+
+        self._coords = np.array([   [0, 1],                 # |000>
+                                    [1, 1],                 # |001>
+                                    [0, 0],                 # |010>
+                                    [1, 0],                 # |011>
+                                    [0, 0],                 # |100>
+                                    [0, 0],                 # |101>
+                                    [0, 0],                 # |110>
+                                    [0, 0]], dtype=float)   # |111>
+        # Set distance
+        self._coords *= self._c
+        # offset 3rd dim qubits 
+        self._coords[4:] = self._coords[:4] + self._o
+        print(self._coords)
+
+        self.fig = None
+        self._ax = None
+        self._val, self._phi = None, None
+        self._lx, self._ly = None, None
+        self._scaleAxis()
 
     
     def draw(self):
@@ -341,6 +464,7 @@ class DimensionalCircleNotation(Visualization, ):
 
 
     def _drawArrows(self, x0, y0):
+        # TODO: Put label parameter, how to handle style?
         """Helper method to draw arrows for coordinate axis at given position.
 
         Args:
@@ -359,9 +483,10 @@ class DimensionalCircleNotation(Visualization, ):
         self._ax.text(x0+alen/2+.2, y0+.3, f'Qubit #{self._axis_labels[0]:1d}', size=self._params['textsize_axislbl'], horizontalalignment='center', verticalalignment='center')    
         self._ax.arrow(x0, y0, alen, 0, **self._arrowStyle)
 
-
+    # TODO: Not doing what the docstring says. Update this to get coordinates for real, make this method more general and move to 
+    # super class, use them for CN visualization to draw stuff in 2d. 3d DCN will have to override this methods
     def _drawDottedLine(self, points):
-        """Helper method.
+        """Helper method:
         Draw dotted lines connecting the given points in the xy-plane.
 
         Args:
@@ -370,8 +495,9 @@ class DimensionalCircleNotation(Visualization, ):
         self._ax.plot(self._coords[points,0], self._coords[points,1], color=self._params['color_cube'], linewidth=self._params['width_cube'], linestyle='dotted', zorder=1)
 
 
+    # TODO: Not doing what the docstring says. Update this to get coordinates for real
     def _drawLine(self, points):
-        """Helper method.
+        """Helper method:
         Draw lines connecting the given points in the xy-plane.
 
         Args:
@@ -379,7 +505,7 @@ class DimensionalCircleNotation(Visualization, ):
         """
         self._ax.plot(self._coords[points,0], self._coords[points,1], color=self._params['color_cube'], linewidth=self._params['width_cube'], linestyle='solid', zorder=1)
             
-
+    # Update this to get coordinates and qubit index 
     def _drawCircle(self, index):
         """Helper method. 
         Draw single circle for DCN. 
@@ -404,9 +530,6 @@ class DimensionalCircleNotation(Visualization, ):
             self._ax.add_artist(phase)
         # Add label to circle
         label = np.binary_repr(index, width=self._sim._n) # width is deprecated since numpy 1.12.0
-        # print(index, label)
-        off = 1.3
-        off_magn_phase = .6#.4
 
         if self._sim._n == 3:
             place = -1 if int(label[1]) else 1
