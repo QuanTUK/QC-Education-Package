@@ -4,18 +4,16 @@
 # Created: March 2023
 # Project: DCN QuanTUK
 # ----------------------------------------------------------------------------
-from .simulator import Simulator
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
-from matplotlib.textpath import TextPath
-from matplotlib.patches import PathPatch
+# from matplotlib.textpath import TextPath
+# from matplotlib.patches import PathPatch
 from io import BytesIO
 from base64 import b64encode
 import numpy as np
 
-# TODO: Skalieren der Bilder (Text und Linienbreite) in den Griff bekommen. -> fixed figsize?
 # TODO: Implement logging
 
 
@@ -142,7 +140,7 @@ class Visualization:
     def draw(self):
         # TODO: Add style guide for draw method
         pass
-    
+
     def _createLabel(self, number: int):
         """Creates a binary label for a given index with zero padding fitting
         to the number of qubits.
@@ -156,7 +154,8 @@ class Visualization:
         # NOTE: width is deprecated since numpy 1.12.0
         return np.binary_repr(number, width=self._sim._n)
 
-    def hist(self, qubit=None, size=100) -> tuple[np.array, mpl.figure, mpl.axes.Axes]:
+    def hist(self, qubit=None, size=100
+             ) -> tuple[np.array, mpl.figure, mpl.axes.Axes]:
         """Create a histogram plot for repeated measurements of the simulator
         state. Here the state of the simulator will not collaps after a
         measurement. Arguments are passed to simulator.read(). If no qubit is
@@ -334,7 +333,7 @@ class DimensionalCircleNotation(Visualization):
             "edgecolor": None,
             "facecolor": 'black',
         }
-        
+
         self._params.update({
             "version": version,
             'color_edge': 'black',
@@ -387,7 +386,7 @@ class DimensionalCircleNotation(Visualization):
             #    Coords should have the index according to value, phase arrays
             # 2. Draw wireframe connecting points of certain indices first
             # 2. Draw circles at given position using the index
-            
+
             # 1 Qubit:
             case 1:
                 # Setup positions of the circles, so these can be accessed easy
@@ -405,28 +404,73 @@ class DimensionalCircleNotation(Visualization):
                     'textsize_magphase': 16,
                     'textsize_axislbl': 20
                 })
-                
+
                 # In the following the index is used to draw the visualization
                 # Draw cube wire frame, qubit 1
                 self._drawLine([0, 1])
                 self._drawCircle(1)
                 self._drawCircle(0)
 
-                # Text for coordinate axis
-                self._ax.text(
-                    0.35,
-                    5.5,
-                    f"Qubit #{self._axis_labels[0]:1d}",
-                    size=self._params['textsize_axislbl'],
-                    horizontalalignment="center",
-                    verticalalignment="center",
-                )
-                # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
-                self._ax.arrow(-1, 5, 2.3, 0, **self._arrowStyle)
+                if self._params['version'] == 1:
+                    # Text for coordinate axis
+                    self._ax.text(
+                        0.35,
+                        5.5,
+                        f"Qubit #{self._axis_labels[0]:1d}",
+                        size=self._params['textsize_axislbl'],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
+                    self._ax.arrow(-1, 5, 2.3, 0, **self._arrowStyle)
 
-                # Set axis limits according to plot size (grows with n)
-                self._ax.set_xlim([-1.1, 4.6])
-                self._ax.set_ylim([1.8, 6])
+                    # Set axis limits according to plot size (grows with n)
+                    self._ax.set_xlim([-1.1, 4.6])
+                    self._ax.set_ylim([1.8, 6])
+                
+                # DCN V2: different coordinate axis
+                else:
+                    # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
+                    self._ax.arrow(-1, 5, self._coords[0, 1] + 1.5, 0,
+                                   **self._arrowStyle)
+                    y, len_tick = 5, .2
+                    tick_y = [y-len_tick, y+len_tick]
+                    self._ax.plot(
+                        [self._coords[0, 0], self._coords[0, 0]],
+                        tick_y,  # y coord like arrow
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        self._coords[0, 0],
+                        y + 2*len_tick,
+                        "0",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    self._ax.plot(
+                        [self._coords[0, 1], self._coords[0, 1]],
+                        tick_y,  # y coord like arrow
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        self._coords[0, 1],
+                        y + 2*len_tick,
+                        "1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    
+                    # Set axis limits according to plot size (grows with n)
+                    self._ax.set_xlim([-1.1, 4.6])
+                    self._ax.set_ylim([1.8, 6])
 
             # 2 Qubits:
             case 2:
@@ -447,7 +491,7 @@ class DimensionalCircleNotation(Visualization):
                     'textsize_magphase': 14,
                     'textsize_axislbl': 17.5
                 })
-                
+
                 # In the following the index is used to draw the visualization
                 # Draw cube wire frame
                 self._drawLine([0, 2, 3, 1])
@@ -458,7 +502,7 @@ class DimensionalCircleNotation(Visualization):
                 # Draw arrows of coordinate axis
                 self._drawCircle(1)
                 self._drawCircle(0)
-                
+
                 # Text for coordinate axis
                 self._ax.text(
                     -1,
@@ -479,7 +523,7 @@ class DimensionalCircleNotation(Visualization):
                 # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
                 self._ax.arrow(-2.5, 6, 2.3, 0, **self._arrowStyle)
                 self._ax.arrow(-2.5, 6, 0, -3.5, **self._arrowStyle)
- 
+
                 # Self axis limits according to plot size (grows with n)
                 self._ax.set_xlim([-4, 4.6])
                 self._ax.set_ylim([-1.5, 6.5])
@@ -510,7 +554,7 @@ class DimensionalCircleNotation(Visualization):
                     'textsize_magphase': 8,
                     'textsize_axislbl': 10
                 })
-                
+
                 # In the following the index is used to draw the visualization
                 # Draw cube wire, Qubit 3
                 self._drawLine([0, 4, 5])
@@ -617,7 +661,10 @@ class DimensionalCircleNotation(Visualization):
         xpos, ypos = self._coords[index]
         # White bg circle area of unit circle
         bg = mpatches.Circle(
-            (xpos, ypos), radius=1, color=self._params["color_bg"], edgecolor=None
+            (xpos, ypos),
+            radius=1,
+            color=self._params["color_bg"],
+            edgecolor=None
         )
         self._ax.add_artist(bg)
         # Fill area of unit circle
