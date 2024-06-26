@@ -1,0 +1,16 @@
+{
+    "recommendations": [
+        "gitlab.gitlab-workflow",
+        "kevinrose.vsc-python-indent",
+        "njpwerner.autodocstring",
+        "aaron-bond.better-comments",
+        "streetsidesoftware.code-spell-checker",
+        "ms-python.flake8",
+        "mhutchie.git-graph",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "ms-python.debugpy",
+        "donjayamanne.python-environment-manager",
+        "donjayamanne.python-extension-pack"
+    ]
+}
