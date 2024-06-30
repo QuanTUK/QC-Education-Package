@@ -472,7 +472,7 @@ class DimensionalCircleNotation(Visualization):
                     # Add Qubit Nr. Label to arrow
                     self._ax.text(
                         self._coords[0, 1]/2,
-                        y + 1.5*len_tick,
+                        y + 2*len_tick,
                         "Qubit #1",
                         size=self._params["textsize_register"],
                         horizontalalignment="center",
@@ -587,7 +587,7 @@ class DimensionalCircleNotation(Visualization):
                     # Add Qubit Nr. Label to arrow
                     self._ax.text(
                         self._coords[0, 1]/2,
-                        y + 1.5*len_tick,
+                        y + 2*len_tick,
                         "Qubit #1",
                         size=self._params["textsize_register"],
                         horizontalalignment="center",
@@ -629,11 +629,10 @@ class DimensionalCircleNotation(Visualization):
                     )
                     # Add Qubit Nr. Label to arrow
                     self._ax.text(
-                        x - 1.5*len_tick,
+                        x - 1.2,
                         self._coords[0, 1]/2,
                         "Qubit #2",
                         size=self._params["textsize_register"],
-                        rotation='vertical',
                         horizontalalignment="center",
                         verticalalignment="center",
                     )
@@ -728,13 +727,13 @@ class DimensionalCircleNotation(Visualization):
                 # DCN V2: different coordinate axis
                 else:
                     # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
-                    x, y, len_tick = -2.5, 7.5, .2
+                    x, y, len_tick = -2, 7, .2
                     # horizontal axis
                     print(self._coords)
                     self._ax.arrow(x-.5, y, self._coords[1, 1] + 4.5, 0,
                                    **self._arrowStyle)
                     # vertical axis
-                    self._ax.arrow(x, y+.5, 0, - (self._coords[0, 1] + 4.5),
+                    self._ax.arrow(x, y+.5, 0, - (self._coords[0, 1] + 5),
                                    **self._arrowStyle)
                     # diagonal axis
                     self._ax.arrow(x-.35, y-.35, 3.35, 3.35,
@@ -818,28 +817,28 @@ class DimensionalCircleNotation(Visualization):
                     )
                     # Add Qubit Nr. Label to arrow
                     self._ax.text(
-                        x - 1.5*len_tick,
+                        x - 1.2,
                         self._coords[0, 1]/2,
                         "Qubit #2",
                         size=self._params["textsize_register"],
-                        rotation='vertical',
                         horizontalalignment="center",
                         verticalalignment="center",
                     )
                     # ticks on diagonal axis
                     len_tick /= np.sqrt(2)
+                    off1, off2 = 0.8, 2.2
                     self._ax.plot(
                         # coords somewhat random so it lust just right
-                        [x+1+len_tick, x+1-len_tick],
-                        [y+1-len_tick, y+1+len_tick],
+                        [x+off1+len_tick, x+off1-len_tick],
+                        [y+off1-len_tick, y+off1+len_tick],
                         color='black',
                         linewidth=1,
                         linestyle="solid",
                         zorder=1,
                     )
                     self._ax.text(
-                        x+.6,
-                        y+1.4,
+                        x+off1-0.4,
+                        y+off1+0.4,
                         "0",
                         size=self._params["textsize_register"],
                         horizontalalignment="center",
@@ -847,16 +846,16 @@ class DimensionalCircleNotation(Visualization):
                     )
                     self._ax.plot(
                         # coords somewhat random so it lust just right
-                        [x+2+len_tick, x+2-len_tick],
-                        [y+2-len_tick, y+2+len_tick],
+                        [x+off2+len_tick, x+off2-len_tick],
+                        [y+off2-len_tick, y+off2+len_tick],
                         color='black',
                         linewidth=1,
                         linestyle="solid",
                         zorder=1,
                     )
                     self._ax.text(
-                        x+1.6,
-                        y+2.4,
+                        x+off2-.4,
+                        y+off2+.4,
                         "1",
                         size=self._params["textsize_register"],
                         horizontalalignment="center",
