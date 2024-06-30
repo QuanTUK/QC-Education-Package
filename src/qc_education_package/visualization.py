@@ -387,7 +387,7 @@ class DimensionalCircleNotation(Visualization):
         # 2. Draw circles at given position using the index
 
         # 1 Qubit:
-        #case 1:
+        # case 1:
         if self._sim._n == 1:
             # Setup positions of the circles, so these can be accessed easy
             self._coords = np.array(
@@ -429,13 +429,13 @@ class DimensionalCircleNotation(Visualization):
                 # Set axis limits according to plot size (grows with n)
                 self._ax.set_xlim([-1.1, 4.6])
                 self._ax.set_ylim([1.8, 6])
-            
+
             # DCN V2: different coordinate axis
             else:
                 # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
                 x, y, len_tick = -1, 5, .2
                 self._ax.arrow(x, y, self._coords[1, 0] + 1.5, 0,
-                                **self._arrowStyle)
+                               **self._arrowStyle)
                 tick_y = [y-len_tick, y+len_tick]
                 self._ax.plot(
                     [self._coords[0, 0], self._coords[0, 0]],
@@ -548,9 +548,9 @@ class DimensionalCircleNotation(Visualization):
                 # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
                 x, y, len_tick = -1.5, 5, .2
                 self._ax.arrow(x-.5, y, self._coords[1, 1] + 3, 0,
-                                **self._arrowStyle)
+                               **self._arrowStyle)
                 self._ax.arrow(x, y+.5, 0, - (self._coords[0, 1] + 3),
-                                **self._arrowStyle)
+                               **self._arrowStyle)
                 # Ticks on horizontal axis
                 tick_y = [y-len_tick, y+len_tick]
                 self._ax.plot(
@@ -637,7 +637,7 @@ class DimensionalCircleNotation(Visualization):
                     horizontalalignment="center",
                     verticalalignment="center",
                 )
-                
+
                 # Self axis limits according to plot size (grows with n)
                 self._ax.set_xlim([-4, 5])
                 self._ax.set_ylim([-1.5, 6.5])
@@ -725,20 +725,20 @@ class DimensionalCircleNotation(Visualization):
                 # Self axis limits according to plot size (grows with n)
                 self._ax.set_xlim([-4, 6.35])
                 self._ax.set_ylim([-1, 8.35])
-                
+
             # DCN V2: different coordinate axis
             else:
                 # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
                 x, y, len_tick = -2, 7, .2
                 # horizontal axis
                 self._ax.arrow(x-.5, y, self._coords[1, 1] + 4.5, 0,
-                                **self._arrowStyle)
+                               **self._arrowStyle)
                 # vertical axis
                 self._ax.arrow(x, y+.5, 0, - (self._coords[0, 1] + 5),
-                                **self._arrowStyle)
+                               **self._arrowStyle)
                 # diagonal axis
                 self._ax.arrow(x-.35, y-.35, 3.35, 3.35,
-                                **self._arrowStyle)
+                               **self._arrowStyle)
                 # Ticks on horizontal axis
                 tick_y = [y-len_tick, y+len_tick]
                 self._ax.plot(
@@ -871,7 +871,7 @@ class DimensionalCircleNotation(Visualization):
                     horizontalalignment="center",
                     verticalalignment="center",
                 )
-                
+
                 # Self axis limits according to plot size (grows with n)
                 self._ax.set_xlim([-3, 7])
                 self._ax.set_ylim([-3, 12])
@@ -964,16 +964,17 @@ class DimensionalCircleNotation(Visualization):
                 linewidth=self._params["width_phase"],
             )
             self._ax.add_artist(phase)
+
+        label = self._createLabel(index)
+        if self._sim._n == 3:
+            place = -1 if int(label[1]) else 1
+        elif self._sim._n == 2:
+            place = -1 if int(label[0]) else 1
+        else:
+            place = -1
+
         if self._params['labels_dirac']:
             # Add dirac label to circle
-            label = self._createLabel(index)
-            if self._sim._n == 3:
-                place = -1 if int(label[1]) else 1
-            elif self._sim._n == 2:
-                place = -1 if int(label[0]) else 1
-            else:
-                place = -1
-
             self._ax.text(
                 xpos,
                 ypos + place * self._params["offset_registerLabel"],
