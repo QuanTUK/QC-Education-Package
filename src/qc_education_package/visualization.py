@@ -187,7 +187,6 @@ class Visualization:
         return result, histFig, ax
 
 
-# TODO: Add test cases !
 
 
 class CircleNotation(Visualization):
@@ -336,6 +335,7 @@ class DimensionalCircleNotation(Visualization):
 
         self._params.update({
             "version": version,
+            "labels_dirac": True if version == 1 else False,
             'color_edge': 'black',
             'color_bg': 'white',
             'color_fill': '#77b6baff',
@@ -411,6 +411,8 @@ class DimensionalCircleNotation(Visualization):
                 self._drawCircle(1)
                 self._drawCircle(0)
 
+                # old style dcn coordinate axis
+                # dirac labels are coonfigured in init already
                 if self._params['version'] == 1:
                     # Text for coordinate axis
                     self._ax.text(
@@ -431,9 +433,9 @@ class DimensionalCircleNotation(Visualization):
                 # DCN V2: different coordinate axis
                 else:
                     # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
-                    self._ax.arrow(-1, 5, self._coords[0, 1] + 1.5, 0,
+                    x, y, len_tick = -1, 5, .2
+                    self._ax.arrow(x, y, self._coords[1, 0] + 1.5, 0,
                                    **self._arrowStyle)
-                    y, len_tick = 5, .2
                     tick_y = [y-len_tick, y+len_tick]
                     self._ax.plot(
                         [self._coords[0, 0], self._coords[0, 0]],
@@ -463,6 +465,15 @@ class DimensionalCircleNotation(Visualization):
                         self._coords[0, 1],
                         y + 2*len_tick,
                         "1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # Add Qubit Nr. Label to arrow
+                    self._ax.text(
+                        self._coords[0, 1]/2,
+                        y + 1.5*len_tick,
+                        "Qubit #1",
                         size=self._params["textsize_register"],
                         horizontalalignment="center",
                         verticalalignment="center",
@@ -503,30 +514,133 @@ class DimensionalCircleNotation(Visualization):
                 self._drawCircle(1)
                 self._drawCircle(0)
 
-                # Text for coordinate axis
-                self._ax.text(
-                    -1,
-                    5.5,
-                    f"Qubit #{self._axis_labels[0]:1d}",
-                    size=self._params['textsize_axislbl'],
-                    horizontalalignment="center",
-                    verticalalignment="center",
-                )
-                self._ax.text(
-                    -2.8,
-                    4.25,
-                    f"Qubit #{self._axis_labels[1]:1d}",
-                    size=self._params['textsize_axislbl'],
-                    horizontalalignment="right",
-                    verticalalignment="center",
-                )
-                # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
-                self._ax.arrow(-2.5, 6, 2.3, 0, **self._arrowStyle)
-                self._ax.arrow(-2.5, 6, 0, -3.5, **self._arrowStyle)
+                # old style dcn coordinate axis
+                # dirac labels are coonfigured in init already
+                if self._params['version'] == 1:
+                    # Text for coordinate axis
+                    self._ax.text(
+                        -1,
+                        5.5,
+                        f"Qubit #{self._axis_labels[0]:1d}",
+                        size=self._params['textsize_axislbl'],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    self._ax.text(
+                        -2.8,
+                        4.25,
+                        f"Qubit #{self._axis_labels[1]:1d}",
+                        size=self._params['textsize_axislbl'],
+                        horizontalalignment="right",
+                        verticalalignment="center",
+                    )
+                    # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
+                    self._ax.arrow(-2.5, 6, 2.3, 0, **self._arrowStyle)
+                    self._ax.arrow(-2.5, 6, 0, -3.5, **self._arrowStyle)
 
-                # Self axis limits according to plot size (grows with n)
-                self._ax.set_xlim([-4, 4.6])
-                self._ax.set_ylim([-1.5, 6.5])
+                    # Self axis limits according to plot size (grows with n)
+                    self._ax.set_xlim([-4, 4.6])
+                    self._ax.set_ylim([-1.5, 6.5])
+
+                # DCN V2: different coordinate axis
+                else:
+                    # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
+                    x, y, len_tick = -1.5, 5, .2
+                    self._ax.arrow(x-.5, y, self._coords[1, 1] + 3, 0,
+                                   **self._arrowStyle)
+                    self._ax.arrow(x, y+.5, 0, - (self._coords[0, 1] + 3),
+                                   **self._arrowStyle)
+                    # Ticks on horizontal axis
+                    tick_y = [y-len_tick, y+len_tick]
+                    self._ax.plot(
+                        [self._coords[0, 0], self._coords[0, 0]],
+                        tick_y,  # y coord like arrow
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        self._coords[0, 0],
+                        y + 2*len_tick,
+                        "0",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    self._ax.plot(
+                        [self._coords[0, 1], self._coords[0, 1]],
+                        tick_y,  # y coord like arrow
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        self._coords[0, 1],
+                        y + 2*len_tick,
+                        "1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # Add Qubit Nr. Label to arrow
+                    self._ax.text(
+                        self._coords[0, 1]/2,
+                        y + 1.5*len_tick,
+                        "Qubit #1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # ticks on vertical axis
+                    tick_x = [x-len_tick, x+len_tick]
+                    self._ax.plot(
+                        tick_x,  # x coord like arrow
+                        [self._coords[0, 1], self._coords[0, 1]],
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        x - 2*len_tick,
+                        self._coords[0, 1],
+                        "0",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    self._ax.plot(
+                        tick_x,  # y coord like arrow
+                        [self._coords[3, 1], self._coords[3, 1]],
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        x - 2*len_tick,
+                        self._coords[3, 1],
+                        "1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # Add Qubit Nr. Label to arrow
+                    self._ax.text(
+                        x - 1.5*len_tick,
+                        self._coords[0, 1]/2,
+                        "Qubit #2",
+                        size=self._params["textsize_register"],
+                        rotation='vertical',
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    
+                    # Self axis limits according to plot size (grows with n)
+                    self._ax.set_xlim([-4, 5])
+                    self._ax.set_ylim([-1.5, 6.5])
 
             # 3 Qubits:
             case 3:
@@ -574,39 +688,194 @@ class DimensionalCircleNotation(Visualization):
                 self._drawCircle(1)
                 self._drawCircle(0)
 
-                # Text for coordinate axis
-                self._ax.text(
-                    -1,
-                    +5.5,
-                    f"Qubit #{self._axis_labels[0]:1d}",
-                    size=self._params['textsize_axislbl'],
-                    horizontalalignment="center",
-                    verticalalignment="center",
-                )
-                self._ax.text(
-                    -2.8,
-                    +4.25,
-                    f"Qubit #{self._axis_labels[1]:1d}",
-                    size=self._params['textsize_axislbl'],
-                    horizontalalignment="right",
-                    verticalalignment="center",
-                )
-                self._ax.text(
-                    0,
-                    +6.975,
-                    f"Qubit #{self._axis_labels[2]:1d}",
-                    size=self._params['textsize_axislbl'],
-                    horizontalalignment="right",
-                    verticalalignment="center",
-                )
-                # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
-                self._ax.arrow(-2.5, 6, 2.3, 0, **self._arrowStyle)
-                self._ax.arrow(-2.5, 6, 0, -3.5, **self._arrowStyle)
-                self._ax.arrow(-2.5, 6, 1.65, 1.65, **self._arrowStyle)
+                # old style dcn coordinate axis
+                # dirac labels are coonfigured in init already
+                if self._params['version'] == 1:
+                    # Text for coordinate axis
+                    self._ax.text(
+                        -1,
+                        +5.5,
+                        f"Qubit #{self._axis_labels[0]:1d}",
+                        size=self._params['textsize_axislbl'],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    self._ax.text(
+                        -2.8,
+                        +4.25,
+                        f"Qubit #{self._axis_labels[1]:1d}",
+                        size=self._params['textsize_axislbl'],
+                        horizontalalignment="right",
+                        verticalalignment="center",
+                    )
+                    self._ax.text(
+                        0,
+                        +6.975,
+                        f"Qubit #{self._axis_labels[2]:1d}",
+                        size=self._params['textsize_axislbl'],
+                        horizontalalignment="right",
+                        verticalalignment="center",
+                    )
+                    # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
+                    self._ax.arrow(-2.5, 6, 2.3, 0, **self._arrowStyle)
+                    self._ax.arrow(-2.5, 6, 0, -3.5, **self._arrowStyle)
+                    self._ax.arrow(-2.5, 6, 1.65, 1.65, **self._arrowStyle)
 
-                # Self axis limits according to plot size (grows with n)
-                self._ax.set_xlim([-4, 6.35])
-                self._ax.set_ylim([-1, 8.35])
+                    # Self axis limits according to plot size (grows with n)
+                    self._ax.set_xlim([-4, 6.35])
+                    self._ax.set_ylim([-1, 8.35])
+                    
+                # DCN V2: different coordinate axis
+                else:
+                    # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
+                    x, y, len_tick = -2.5, 7.5, .2
+                    # horizontal axis
+                    print(self._coords)
+                    self._ax.arrow(x-.5, y, self._coords[1, 1] + 4.5, 0,
+                                   **self._arrowStyle)
+                    # vertical axis
+                    self._ax.arrow(x, y+.5, 0, - (self._coords[0, 1] + 4.5),
+                                   **self._arrowStyle)
+                    # diagonal axis
+                    self._ax.arrow(x-.35, y-.35, 3.35, 3.35,
+                                   **self._arrowStyle)
+                    # Ticks on horizontal axis
+                    tick_y = [y-len_tick, y+len_tick]
+                    self._ax.plot(
+                        [self._coords[0, 0], self._coords[0, 0]],
+                        tick_y,  # y coord like arrow
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        self._coords[0, 0],
+                        y + 2*len_tick,
+                        "0",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    self._ax.plot(
+                        [self._coords[0, 1], self._coords[0, 1]],
+                        tick_y,  # y coord like arrow
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        self._coords[0, 1],
+                        y + 2*len_tick,
+                        "1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # Add Qubit Nr. Label to arrow
+                    self._ax.text(
+                        self._coords[0, 1]/2,
+                        y + 1.5*len_tick,
+                        "Qubit #1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # ticks on vertical axis
+                    tick_x = [x-len_tick, x+len_tick]
+                    self._ax.plot(
+                        tick_x,  # x coord like arrow
+                        [self._coords[0, 1], self._coords[0, 1]],
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        x - 2*len_tick,
+                        self._coords[0, 1],
+                        "0",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    self._ax.plot(
+                        tick_x,  # y coord like arrow
+                        [self._coords[3, 1], self._coords[3, 1]],
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        x - 2*len_tick,
+                        self._coords[3, 1],
+                        "1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # Add Qubit Nr. Label to arrow
+                    self._ax.text(
+                        x - 1.5*len_tick,
+                        self._coords[0, 1]/2,
+                        "Qubit #2",
+                        size=self._params["textsize_register"],
+                        rotation='vertical',
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # ticks on diagonal axis
+                    len_tick /= np.sqrt(2)
+                    self._ax.plot(
+                        # coords somewhat random so it lust just right
+                        [x+1+len_tick, x+1-len_tick],
+                        [y+1-len_tick, y+1+len_tick],
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        x+.6,
+                        y+1.4,
+                        "0",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    self._ax.plot(
+                        # coords somewhat random so it lust just right
+                        [x+2+len_tick, x+2-len_tick],
+                        [y+2-len_tick, y+2+len_tick],
+                        color='black',
+                        linewidth=1,
+                        linestyle="solid",
+                        zorder=1,
+                    )
+                    self._ax.text(
+                        x+1.6,
+                        y+2.4,
+                        "1",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    # Add Qubit Nr. Label to arrow
+                    self._ax.text(
+                        -2.5,
+                        y + 2.3,
+                        "Qubit #3",
+                        size=self._params["textsize_register"],
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                    )
+                    
+                    # Self axis limits according to plot size (grows with n)
+                    self._ax.set_xlim([-3, 7])
+                    self._ax.set_ylim([-3, 12])
+
             case _:
                 raise NotImplementedError(
                     "DCN V2 is not implemented for so " + "many qubits."
@@ -694,23 +963,24 @@ class DimensionalCircleNotation(Visualization):
                 linewidth=self._params["width_phase"],
             )
             self._ax.add_artist(phase)
-        # Add label to circle
-        label = self._createLabel(index)
-        if self._sim._n == 3:
-            place = -1 if int(label[1]) else 1
-        elif self._sim._n == 2:
-            place = -1 if int(label[0]) else 1
-        else:
-            place = -1
+        if self._params['labels_dirac']:
+            # Add dirac label to circle
+            label = self._createLabel(index)
+            if self._sim._n == 3:
+                place = -1 if int(label[1]) else 1
+            elif self._sim._n == 2:
+                place = -1 if int(label[0]) else 1
+            else:
+                place = -1
 
-        self._ax.text(
-            xpos,
-            ypos + place * self._params["offset_registerLabel"],
-            rf"$|{label:s}\rangle$",
-            size=self._params["textsize_register"],
-            horizontalalignment="center",
-            verticalalignment="center",
-        )
+            self._ax.text(
+                xpos,
+                ypos + place * self._params["offset_registerLabel"],
+                rf"$|{label:s}\rangle$",
+                size=self._params["textsize_register"],
+                horizontalalignment="center",
+                verticalalignment="center",
+            )
         if self._params["showValues"]:
             self._ax.text(
                 xpos,
