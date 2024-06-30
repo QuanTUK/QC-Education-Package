@@ -478,7 +478,7 @@ class DimensionalCircleNotation(Visualization):
                         horizontalalignment="center",
                         verticalalignment="center",
                     )
-                    
+
                     # Set axis limits according to plot size (grows with n)
                     self._ax.set_xlim([-1.1, 4.6])
                     self._ax.set_ylim([1.8, 6])
@@ -775,7 +775,7 @@ class DimensionalCircleNotation(Visualization):
                     # Add Qubit Nr. Label to arrow
                     self._ax.text(
                         self._coords[0, 1]/2,
-                        y + 1.5*len_tick,
+                        y + 3*len_tick,
                         "Qubit #1",
                         size=self._params["textsize_register"],
                         horizontalalignment="center",
@@ -863,8 +863,8 @@ class DimensionalCircleNotation(Visualization):
                     )
                     # Add Qubit Nr. Label to arrow
                     self._ax.text(
-                        -2.5,
-                        y + 2.3,
+                        -1.75,
+                        y + 2.1,
                         "Qubit #3",
                         size=self._params["textsize_register"],
                         horizontalalignment="center",
