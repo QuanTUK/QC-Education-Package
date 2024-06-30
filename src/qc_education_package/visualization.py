@@ -187,8 +187,6 @@ class Visualization:
         return result, histFig, ax
 
 
-
-
 class CircleNotation(Visualization):
     """A Visualization subclass for the well known Circle Notation
     representation.
@@ -324,7 +322,7 @@ class DimensionalCircleNotation(Visualization):
             visualized.
         """
         super().__init__(simulator)  # Execute constructor of superclass
-
+        print(f"Setting up DCN Visualization in version {version}.")
         self._arrowStyle = {
             "width": .03,
             "head_width": .3,
@@ -334,8 +332,8 @@ class DimensionalCircleNotation(Visualization):
         }
 
         self._params.update({
-            "version": version,
-            "labels_dirac": True if version == 1 else False,
+            'version': version,
+            'labels_dirac': True if version == 1 else False,
             'color_edge': 'black',
             'color_bg': 'white',
             'color_fill': '#77b6baff',
@@ -729,7 +727,6 @@ class DimensionalCircleNotation(Visualization):
                     # Arrows for coordinate axis (x,y,dx,dy, **kwargs)
                     x, y, len_tick = -2, 7, .2
                     # horizontal axis
-                    print(self._coords)
                     self._ax.arrow(x-.5, y, self._coords[1, 1] + 4.5, 0,
                                    **self._arrowStyle)
                     # vertical axis
