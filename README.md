@@ -24,4 +24,8 @@ sim = DimensionalCircleNotation(sim)
 sim.show()
 ```
 
-For more examples and some interesting insights into the new DCN visualzation we invite You to try the examples provided in the [DCN_Examples](https://github.com/QuanTUK/DCN_examples) Repositroy.
+## new updates
+
+The DCN visualization now works for more than three qubits. We also added the Dimensional Bloch Sphere notation. In the next couple of weeks, some more usages will be discussed in this repository, to update this into a DigiQ module.
+
+For more examples and some interesting insights into the new DCN visualzation we invite You to try the examples provided in the [DCN_Examples](https://github.com/QuanTUK/DCN_examples) Repository.
